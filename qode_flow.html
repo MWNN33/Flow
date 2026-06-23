@@ -690,18 +690,22 @@ textarea.transcript{min-height:120px;font-size:13.5px;}
 
 <div id="toasts"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ============ STORAGE ============ */
-const Storage = {
-  async get(key, fallback){
-    try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : fallback; }
-    catch(e){ return fallback; }
-  },
-  async set(key, value){
-    try{ await window.storage.set(key, JSON.stringify(value)); }
-    catch(e){ console.error('storage set failed', key, e); }
-  }
-};
+/* ============ SUPABASE ============ */
+const SUPABASE_URL = 'https://eowaqwmeytogakuzklfe.supabase.co';       // <-- fill in
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvd2Fxd21leXRvZ2FrdXprbGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzQzODMsImV4cCI6MjA5NzgxMDM4M30.V2UyPcXx6xpXpRTXezpa-y92mvoUyivoR8FTED1i76k';                  // <-- fill in
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUserId = null;
+
+async function ensureAuth(){
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session){ currentUserId = session.user.id; return; }
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if (error){ console.error('Sign-in failed', error); return; }
+  currentUserId = data.user.id;
+}
 
 let state = {
   events: [],
@@ -712,12 +716,119 @@ let state = {
   settings: { notifPermission:'default', defaultPriority:'medium', aiLanguage:'en-US' }
 };
 
-const saveEvents  = () => Storage.set('events', state.events);
-const saveNotes   = () => Storage.set('voice-notes', state.notes);
-const saveEmails  = () => Storage.set('emails', state.emails);
-const saveBlocks  = () => Storage.set('focus-blocks', state.blocks);
-const saveNotifLog= () => Storage.set('notif-log', state.notifLog);
-const saveSettings= () => Storage.set('settings', state.settings);
+/* ---------- EVENTS ---------- */
+function eventToRow(ev){
+  return { id:ev.id, user_id:currentUserId, title:ev.title, date:ev.date,
+    time:ev.time, duration_min:ev.durationMin, platform:ev.platform, link:ev.link,
+    attendees:ev.attendees||[], priority:ev.priority, type:ev.type, notes:ev.notes||'' };
+}
+function rowToEvent(r){
+  return { id:r.id, title:r.title, date:r.date, time:(r.time||'').slice(0,5),
+    durationMin:r.duration_min, platform:r.platform, link:r.link||'',
+    attendees:r.attendees||[], priority:r.priority, type:r.type, notes:r.notes||'',
+    created:new Date(r.created_at).getTime() };
+}
+async function loadEvents(){
+  const { data, error } = await supabase.from('events').select('*').order('created_at');
+  if (error){ console.error(error); return []; }
+  return data.map(rowToEvent);
+}
+async function saveEvents(){
+  await supabase.from('events').delete().eq('user_id', currentUserId);
+  if (state.events.length) await supabase.from('events').insert(state.events.map(eventToRow));
+}
+
+/* ---------- VOICE NOTES ---------- */
+function noteToRow(n){
+  return { id:n.id, user_id:currentUserId, headline:n.headline, date:n.date,
+    priority:n.priority, transcript:n.transcript||'' };
+}
+function rowToNote(r){
+  return { id:r.id, headline:r.headline, date:r.date, priority:r.priority,
+    transcript:r.transcript||'', created:new Date(r.created_at).getTime() };
+}
+async function loadNotes(){
+  const { data, error } = await supabase.from('voice_notes').select('*').order('created_at');
+  if (error){ console.error(error); return []; }
+  return data.map(rowToNote);
+}
+async function saveNotes(){
+  await supabase.from('voice_notes').delete().eq('user_id', currentUserId);
+  if (state.notes.length) await supabase.from('voice_notes').insert(state.notes.map(noteToRow));
+}
+
+/* ---------- EMAILS ---------- */
+function emailToRow(e){
+  return { id:e.id, user_id:currentUserId, to_addresses:e.to||[], subject:e.subject,
+    body:e.body||'', send_date:e.sendDate, send_time:e.sendTime, priority:e.priority,
+    status:e.status };
+}
+function rowToEmail(r){
+  return { id:r.id, to:r.to_addresses||[], subject:r.subject, body:r.body||'',
+    sendDate:r.send_date, sendTime:(r.send_time||'').slice(0,5), priority:r.priority,
+    status:r.status, created:new Date(r.created_at).getTime() };
+}
+async function loadEmails(){
+  const { data, error } = await supabase.from('emails').select('*').order('created_at');
+  if (error){ console.error(error); return []; }
+  return data.map(rowToEmail);
+}
+async function saveEmails(){
+  await supabase.from('emails').delete().eq('user_id', currentUserId);
+  if (state.emails.length) await supabase.from('emails').insert(state.emails.map(emailToRow));
+}
+
+/* ---------- FOCUS BLOCKS ---------- */
+function blockToRow(b){
+  return { id:b.id, user_id:currentUserId, title:b.title, type:b.type, date:b.date,
+    start_time:b.start, duration:b.duration, priority:b.priority, focus_mode:b.focusMode };
+}
+function rowToBlock(r){
+  return { id:r.id, title:r.title, type:r.type, date:r.date,
+    start:(r.start_time||'').slice(0,5), duration:r.duration, priority:r.priority,
+    focusMode:r.focus_mode, created:new Date(r.created_at).getTime() };
+}
+async function loadBlocks(){
+  const { data, error } = await supabase.from('focus_blocks').select('*').order('created_at');
+  if (error){ console.error(error); return []; }
+  return data.map(rowToBlock);
+}
+async function saveBlocks(){
+  await supabase.from('focus_blocks').delete().eq('user_id', currentUserId);
+  if (state.blocks.length) await supabase.from('focus_blocks').insert(state.blocks.map(blockToRow));
+}
+
+/* ---------- NOTIF LOG ---------- */
+function notifToRow(n){
+  return { id:n.id, user_id:currentUserId, title:n.title, body:n.body||'' };
+}
+function rowToNotif(r){
+  return { id:r.id, title:r.title, body:r.body||'', time:new Date(r.occurred_at).getTime() };
+}
+async function loadNotifLog(){
+  const { data, error } = await supabase.from('notif_log').select('*').order('occurred_at', { ascending:false }).limit(40);
+  if (error){ console.error(error); return []; }
+  return data.map(rowToNotif);
+}
+async function saveNotifLog(){
+  await supabase.from('notif_log').delete().eq('user_id', currentUserId);
+  if (state.notifLog.length) await supabase.from('notif_log').insert(state.notifLog.map(notifToRow));
+}
+
+/* ---------- SETTINGS (single row per user) ---------- */
+async function loadSettings(){
+  const { data, error } = await supabase.from('settings').select('*').maybeSingle();
+  if (error || !data) return { notifPermission:'default', defaultPriority:'medium', aiLanguage:'en-US' };
+  return { notifPermission:data.notif_permission, defaultPriority:data.default_priority, aiLanguage:data.ai_language };
+}
+async function saveSettings(){
+  await supabase.from('settings').upsert({
+    user_id:currentUserId,
+    notif_permission:state.settings.notifPermission,
+    default_priority:state.settings.defaultPriority,
+    ai_language:state.settings.aiLanguage
+  });
+}
 
 /* ============ HELPERS ============ */
 function uid(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -1885,6 +1996,9 @@ document.getElementById('aiChipBtn').addEventListener('click',()=>{
 
 /* ============ INIT ============ */
 async function init(){
+  await ensureAuth();
+  if(!currentUserId){ toast('Could not connect to Supabase — check your URL/key and Anonymous sign-ins setting'); return; }
+
   document.getElementById('eventDate').value=todayStr();
   document.getElementById('noteDate').value=todayStr();
   document.getElementById('emailDate').value=todayStr();
@@ -1892,12 +2006,12 @@ async function init(){
   selectedCalDay=todayStr();
 
   const [events,notes,emails,blocks,notifLog,settings]=await Promise.all([
-    Storage.get('events',[]),
-    Storage.get('voice-notes',[]),
-    Storage.get('emails',[]),
-    Storage.get('focus-blocks',[]),
-    Storage.get('notif-log',[]),
-    Storage.get('settings',{notifPermission:'default',defaultPriority:'medium',aiLanguage:'en-US'})
+    loadEvents(),
+    loadNotes(),
+    loadEmails(),
+    loadBlocks(),
+    loadNotifLog(),
+    loadSettings()
   ]);
   state.events=events; state.notes=notes; state.emails=emails;
   state.blocks=blocks; state.notifLog=notifLog; state.settings=settings;
