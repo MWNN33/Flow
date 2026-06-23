@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QODE Flow</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0E1013;
+  --surface:#161920;
+  --surface-2:#1D2128;
+  --surface-3:#23272F;
+  --border:#2A2F38;
+  --text:#ECE9E2;
+  --text-muted:#9097A1;
+  --text-faint:#5C616B;
+  --accent:#FF8A3D;
+  --accent-soft:rgba(255,138,61,0.14);
+  --live:#46D7B7;
+  --live-soft:rgba(70,215,183,0.14);
+  --high:#E5484D;
+  --high-soft:rgba(229,72,77,0.14);
+  --medium:#F2B33D;
+  --medium-soft:rgba(242,179,61,0.14);
+  --low:#7C828D;
+  --low-soft:rgba(124,130,141,0.16);
+  --ai:#A78BFA;
+  --ai-soft:rgba(167,139,250,0.13);
+  --radius:10px;
+  --radius-sm:7px;
+  --font-display:'Space Grotesk', ui-sans-serif, system-ui, Arial, sans-serif;
+  --font-body:'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;width:100%;}
+textarea{resize:vertical;line-height:1.5;}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+label{display:block;font-size:11.5px;color:var(--text-muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.field{margin-bottom:13px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+#app{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 13px;}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 6px 20px;}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#ffc08a);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;color:#1a1206;font-size:15px;flex-shrink:0;}
+.brand-name{font-family:var(--font-display);font-weight:700;font-size:16.5px;letter-spacing:.2px;}
+.brand-sub{font-size:9.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:1.2px;margin-top:1px;}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);color:var(--text-muted);background:transparent;border:none;text-align:left;font-size:13.5px;font-weight:500;width:100%;}
+.nav-item:hover{background:var(--surface-2);color:var(--text);}
+.nav-item.active{background:var(--accent-soft);color:var(--accent);}
+.nav-item .ic{width:17px;text-align:center;font-size:14px;}
+.nav-count{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);background:var(--surface-2);padding:1px 6px;border-radius:10px;}
+.nav-item.active .nav-count{color:var(--accent);background:rgba(255,138,61,.18);}
+.sidebar-footer{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:9px;}
+.status-pill{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-faint);padding:0 4px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);flex-shrink:0;}
+.dot.on{background:var(--live);box-shadow:0 0 0 3px var(--live-soft);}
+
+/* MAIN AREA */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.dispatch-wrap{padding:16px 26px 12px;border-bottom:1px solid var(--border);background:var(--surface);}
+.dispatch-bar{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;font-family:var(--font-mono);transition:border-color .15s;}
+.dispatch-bar.focused{border-color:var(--accent);}
+.dispatch-bar .prompt{color:var(--accent);font-weight:600;font-size:14px;}
+.dispatch-bar input{flex:1;background:transparent;border:none;padding:0;font-family:var(--font-mono);font-size:13.5px;color:var(--text);}
+.dispatch-bar input:focus{outline:none;box-shadow:none;}
+.dispatch-bar input::placeholder{color:var(--text-faint);}
+.run-btn{background:var(--accent);color:#1a1206;border:none;padding:7px 14px;border-radius:6px;font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
+.run-btn:hover{filter:brightness(1.08);}
+.chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.chip{font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);background:var(--surface-2);border:1px solid var(--border);padding:4px 9px;border-radius:20px;cursor:pointer;}
+.chip:hover{color:var(--accent);border-color:var(--accent);}
+.chip.help{color:var(--text-faint);border-style:dashed;}
+.chip.ai-chip{color:var(--ai);border-color:rgba(167,139,250,0.3);background:var(--ai-soft);}
+.dispatch-log{margin-top:9px;display:flex;flex-direction:column;gap:3px;min-height:0;}
+.dispatch-log .line{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);display:flex;gap:8px;animation:fadein .25s ease;}
+.dispatch-log .line .t{color:var(--live);flex-shrink:0;}
+@keyframes fadein{from{opacity:0;transform:translateY(-3px);}to{opacity:1;transform:translateY(0);}}
+
+.content-area{flex:1;display:flex;min-height:0;}
+.content{flex:1;overflow-y:auto;padding:22px 26px 60px;}
+.view{display:none;}
+.view.active{display:block;animation:viewin .18s ease;}
+@keyframes viewin{from{opacity:0;}to{opacity:1;}}
+.view-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;gap:14px;flex-wrap:wrap;}
+.h1{font-family:var(--font-display);font-size:21px;font-weight:700;margin:0 0 4px;}
+.muted{color:var(--text-muted);}
+.faint{color:var(--text-faint);}
+.section-title{font-family:var(--font-display);font-size:12px;text-transform:uppercase;letter-spacing:1.1px;color:var(--text-faint);margin:0 0 12px;font-weight:600;}
+.grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr;}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 17px;}
+.card+.card{margin-top:14px;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.card-head h3{font-family:var(--font-display);font-size:14px;margin:0;font-weight:600;}
+.item-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border);}
+.item-row:last-child{border-bottom:none;}
+.item-time{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);width:48px;flex-shrink:0;}
+.item-main{flex:1;min-width:0;}
+.item-title{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.item-sub{font-size:11.5px;color:var(--text-faint);margin-top:1px;}
+.item-actions{display:flex;gap:6px;flex-shrink:0;}
+.empty{padding:26px 10px;text-align:center;color:var(--text-faint);font-size:12.5px;}
+.empty b{color:var(--text-muted);display:block;font-size:13.5px;margin-bottom:3px;font-family:var(--font-display);}
+.badge{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.badge.high{background:var(--high-soft);color:var(--high);}
+.badge.medium{background:var(--medium-soft);color:var(--medium);}
+.badge.low{background:var(--low-soft);color:var(--low);}
+.badge.live{background:var(--live-soft);color:var(--live);}
+.badge.platform{background:var(--surface-3);color:var(--text-muted);}
+.btn{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:600;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn.primary{background:var(--accent);color:#1a1206;border-color:var(--accent);}
+.btn.primary:hover{filter:brightness(1.07);color:#1a1206;}
+.btn.danger:hover{border-color:var(--high);color:var(--high);}
+.btn.sm{padding:5px 9px;font-size:11px;}
+.btn.ghost{background:transparent;}
+.btn.ai-btn{background:var(--ai-soft);border-color:rgba(167,139,250,0.3);color:var(--ai);}
+.btn.ai-btn:hover{filter:brightness(1.1);}
+.btn-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+
+/* PRIORITY GROUPS */
+.pgroup{margin-bottom:20px;}
+.pgroup-head{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.pgroup-head .dotp{width:9px;height:9px;border-radius:50%;}
+.pgroup-head .dotp.high{background:var(--high);}.pgroup-head .dotp.medium{background:var(--medium);}.pgroup-head .dotp.low{background:var(--low);}
+.pgroup-head h4{font-family:var(--font-display);font-size:13px;margin:0;font-weight:600;}
+.pgroup-head .cnt{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);}
+.prio-select{width:auto;padding:4px 7px;font-size:11px;}
+
+/* CALENDAR */
+.cal-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.cal-month{font-family:var(--font-display);font-weight:700;font-size:16px;min-width:170px;}
+.cal-nav{display:flex;gap:6px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{text-align:center;font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;padding-bottom:4px;}
+.cal-day{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);min-height:74px;padding:6px;cursor:pointer;transition:border-color .12s;}
+.cal-day:hover{border-color:var(--accent);}
+.cal-day.outside{opacity:.32;}
+.cal-day.today{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);}
+.cal-day.selected{background:var(--surface-3);}
+.cal-day .dnum{font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);}
+.cal-dots{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap;}
+.cal-dots span{width:6px;height:6px;border-radius:50%;display:block;}
+.day-panel{margin-top:16px;}
+
+/* MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(8,9,11,.66);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modal-backdrop.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:20px 22px;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.modal-head h3{font-family:var(--font-display);font-size:16px;margin:0;}
+.modal-close{background:transparent;border:none;color:var(--text-faint);font-size:18px;padding:2px 6px;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.checkline{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-muted);margin:10px 0;}
+.checkline input{width:auto;}
+
+/* MIC / RECORDER */
+.mic-wrap{display:flex;align-items:center;justify-content:center;gap:14px;padding:18px 0 8px;}
+.mic-btn{width:64px;height:64px;border-radius:50%;background:var(--surface-2);border:2px solid var(--border);color:var(--text-muted);font-size:24px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.mic-btn.live{background:var(--high-soft);border-color:var(--high);color:var(--high);animation:pulse 1.4s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.35);}70%{box-shadow:0 0 0 14px rgba(229,72,77,0);}100%{box-shadow:0 0 0 0 rgba(229,72,77,0);}}}
+.rec-status{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:6px;}
+textarea.transcript{min-height:120px;font-size:13.5px;}
+
+/* TOASTS */
+#toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:100;}
+.toast{background:var(--surface-3);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius-sm);padding:10px 14px;font-size:12.5px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.35);animation:fadein .2s ease;}
+.toast.notif{border-left-color:var(--live);}
+.toast.ai{border-left-color:var(--ai);}
+
+/* BELL */
+.bell-wrap{position:relative;}
+.bell-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--high);display:none;}
+.bell-dot.show{display:block;}
+.notif-panel{position:absolute;top:46px;right:0;width:300px;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius);padding:8px;display:none;max-height:340px;overflow-y:auto;z-index:40;box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.notif-panel.show{display:block;}
+.notif-item{padding:8px 9px;border-radius:var(--radius-sm);font-size:12px;}
+.notif-item:hover{background:var(--surface-2);}
+.notif-item .ti{font-weight:600;margin-bottom:2px;}
+.notif-item .ts{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-top:3px;}
+
+/* AI ASSISTANT PANEL */
+.ai-panel{width:340px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;transition:width .2s;}
+.ai-panel.collapsed{width:0;overflow:hidden;border:none;}
+.ai-panel-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;}
+.ai-panel-head h4{font-family:var(--font-display);font-size:13px;margin:0;font-weight:600;color:var(--ai);display:flex;align-items:center;gap:7px;}
+.ai-live-dot{width:7px;height:7px;border-radius:50%;background:var(--ai);animation:aipulse 2s infinite;}
+@keyframes aipulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.ai-messages{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;}
+.ai-msg{border-radius:var(--radius-sm);padding:10px 12px;font-size:12.5px;line-height:1.6;animation:fadein .2s ease;}
+.ai-msg.assistant{background:var(--ai-soft);border:1px solid rgba(167,139,250,0.18);color:var(--text);}
+.ai-msg.user{background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);text-align:right;}
+.ai-msg.system{background:transparent;color:var(--text-faint);font-size:11px;font-style:italic;text-align:center;border:none;padding:4px;}
+.ai-msg .ai-tag{font-size:10px;color:var(--ai);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.ai-input-area{padding:12px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+.ai-voice-row{display:flex;align-items:center;gap:8px;}
+.ai-text-input{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:12.5px;color:var(--text);resize:none;min-height:36px;max-height:80px;}
+.ai-text-input:focus{outline:2px solid var(--ai);border-color:var(--ai);}
+.ai-send-btn{background:var(--ai);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;font-weight:600;white-space:nowrap;}
+.ai-send-btn:hover{filter:brightness(1.1);}
+.ai-mic-btn{width:36px;height:36px;border-radius:50%;background:var(--surface-2);border:1.5px solid var(--border);color:var(--text-muted);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-mic-btn.live{background:var(--high-soft);border-color:var(--high);color:var(--high);animation:pulse 1.4s infinite;}
+.ai-actions{display:flex;gap:5px;flex-wrap:wrap;}
+.ai-action-chip{font-family:var(--font-mono);font-size:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-faint);padding:3px 7px;border-radius:20px;cursor:pointer;white-space:nowrap;}
+.ai-action-chip:hover{border-color:var(--ai);color:var(--ai);}
+
+/* FOCUS PLAN */
+.focus-bar{background:var(--surface-2);border-bottom:1px solid var(--border);padding:8px 26px;display:flex;align-items:center;gap:12px;font-size:12px;}
+.focus-task{flex:1;font-weight:600;color:var(--text);}
+.focus-timer{font-family:var(--font-mono);font-size:13px;color:var(--accent);font-weight:600;}
+.focus-btn{background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+.focus-btn:hover{border-color:var(--accent);color:var(--accent);}
+.focus-bar.hidden{display:none;}
+
+/* PLAN VIEW */
+.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.plan-card+.plan-card{margin-top:12px;}
+.plan-slot{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.plan-slot:last-child{border-bottom:none;}
+.plan-slot-time{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);width:44px;flex-shrink:0;padding-top:2px;}
+.plan-slot-body{flex:1;}
+.plan-slot-title{font-size:13px;font-weight:600;}
+.plan-slot-sub{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
+.plan-block-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;text-transform:uppercase;letter-spacing:.4px;margin-left:6px;}
+.plan-block-tag.focus{background:var(--accent-soft);color:var(--accent);}
+.plan-block-tag.buffer{background:var(--live-soft);color:var(--live);}
+.plan-block-tag.meeting{background:var(--medium-soft);color:var(--medium);}
+.block-marker{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-faint);padding:6px 0;border-bottom:1px dashed var(--border);}
+.block-marker:last-child{border-bottom:none;}
+
+/* AI THINKING */
+.ai-thinking{display:flex;gap:4px;align-items:center;padding:10px 12px;}
+.ai-thinking span{width:6px;height:6px;border-radius:50%;background:var(--ai);opacity:.4;animation:think .8s infinite;}
+.ai-thinking span:nth-child(2){animation-delay:.15s;}
+.ai-thinking span:nth-child(3){animation-delay:.3s;}
+@keyframes think{0%,80%,100%{transform:scale(0.6);opacity:.3;}40%{transform:scale(1);opacity:1;}}
+
+/* TOGGLE AI PANEL BTN */
+.ai-toggle-btn{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--ai-soft);border:1px solid rgba(167,139,250,.3);border-right:none;color:var(--ai);padding:8px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;z-index:20;display:none;}
+.ai-panel.collapsed~.ai-toggle-btn{display:flex;}
+
+/* FOCUS BLOCKER OVERLAY */
+#focusBlocker{position:fixed;inset:0;background:rgba(8,9,11,0.82);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px;}
+#focusBlocker.show{display:flex;}
+#focusBlocker .fb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 32px;max-width:360px;text-align:center;}
+#focusBlocker .fb-card h2{font-family:var(--font-display);font-size:20px;margin:0 0 8px;}
+#focusBlocker .fb-card p{color:var(--text-muted);font-size:13px;margin:0 0 18px;}
+#focusBlocker .fb-timer{font-family:var(--font-mono);font-size:36px;font-weight:700;color:var(--accent);margin-bottom:16px;}
+
+@media(max-width:760px){
+  .sidebar{position:fixed;left:0;bottom:0;top:auto;width:100%;height:auto;flex-direction:row;align-items:center;padding:8px 10px;border-right:none;border-top:1px solid var(--border);z-index:30;}
+  .brand,.sidebar-footer,.nav-count{display:none;}
+  .nav{flex-direction:row;flex:1;justify-content:space-around;}
+  .nav-item{flex-direction:column;gap:3px;font-size:10px;padding:6px 4px;}
+  #app{flex-direction:column;}
+  .main{padding-bottom:54px;}
+  .content{padding:16px 14px 80px;}
+  .dispatch-wrap{padding:12px 14px 10px;}
+  .grid-2{grid-template-columns:1fr;}
+  .ai-panel{display:none;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">Q</div>
+      <div>
+        <div class="brand-name">QODE Flow</div>
+        <div class="brand-sub">by QODE</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="dashboard"><span class="ic">⬧</span> Dashboard</button>
+      <button class="nav-item" data-view="calendar"><span class="ic">📅</span> Calendar <span class="nav-count" id="cnt-cal">0</span></button>
+      <button class="nav-item" data-view="notes"><span class="ic">🎙</span> Voice notes <span class="nav-count" id="cnt-notes">0</span></button>
+      <button class="nav-item" data-view="emails"><span class="ic">✉</span> Emails <span class="nav-count" id="cnt-emails">0</span></button>
+      <button class="nav-item" data-view="priorities"><span class="ic">⚠</span> Priorities</button>
+      <button class="nav-item" data-view="plan"><span class="ic">🧠</span> Focus plan</button>
+      <button class="nav-item" data-view="settings"><span class="ic">⚙</span> Settings</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-pill"><span class="dot" id="notif-dot"></span> <span id="notif-status-txt">Notifications off</span></div>
+      <div class="status-pill"><span class="dot" id="speech-dot"></span> <span id="speech-status-txt">Checking voice…</span></div>
+      <button class="btn sm ai-btn" id="toggleAiBtn" style="margin-top:4px;">⚡ AI Assistant</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- FOCUS BAR -->
+    <div class="focus-bar hidden" id="focusBar">
+      <span style="color:var(--text-faint);font-size:11px;">FOCUS:</span>
+      <span class="focus-task" id="focusTaskLabel">—</span>
+      <span class="focus-timer" id="focusTimerDisplay">—</span>
+      <button class="focus-btn" id="focusPauseBtn">Pause</button>
+      <button class="focus-btn" id="focusEndBtn">End session</button>
+    </div>
+
+    <div class="dispatch-wrap">
+      <div class="dispatch-bar" id="dispatchBar">
+        <span class="prompt">&gt;</span>
+        <input type="text" id="dispatchInput" placeholder="Type /zoom, /meet, /event, /note, /email, /plan — or ask the AI anything" autocomplete="off">
+        <button class="run-btn" id="dispatchRun">Run</button>
+        <div class="bell-wrap">
+          <button class="btn sm ghost" id="bellBtn" style="font-size:15px;">🔔<span class="bell-dot" id="bellDot"></span></button>
+          <div class="notif-panel" id="notifPanel"></div>
+        </div>
+      </div>
+      <div class="chips" id="chips">
+        <span class="chip" data-fill="/zoom ">/zoom</span>
+        <span class="chip" data-fill="/meet ">/meet</span>
+        <span class="chip" data-fill="/teams ">/teams</span>
+        <span class="chip" data-fill="/event ">/event</span>
+        <span class="chip" data-fill="/note ">/note</span>
+        <span class="chip" data-fill="/email ">/email</span>
+        <span class="chip" data-fill="/plan ">/plan</span>
+        <span class="chip ai-chip" data-fill="" id="aiChipBtn">✨ Ask AI</span>
+        <span class="chip help" id="helpChip">/help</span>
+      </div>
+      <div class="dispatch-log" id="dispatchLog"></div>
+    </div>
+
+    <div class="content-area">
+      <div class="content">
+
+        <!-- DASHBOARD -->
+        <section class="view active" id="view-dashboard">
+          <div class="view-head">
+            <div>
+              <div class="h1">Today's briefing</div>
+              <div class="muted" id="todayLine">—</div>
+            </div>
+            <button class="btn ai-btn" id="dashAiSuggestBtn">✨ Suggest plan</button>
+          </div>
+          <div class="grid-2">
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>Today</h3><button class="btn sm" data-open-event>+ New event</button></div>
+                <div id="dashToday"></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h3>Coming up</h3></div>
+                <div id="dashUpcoming"></div>
+              </div>
+            </div>
+            <div>
+              <div class="card">
+                <div class="card-head"><h3>Priority snapshot</h3></div>
+                <div id="dashPriority"></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h3>Recent voice notes</h3></div>
+                <div id="dashNotes"></div>
+              </div>
+              <div class="card">
+                <div class="card-head"><h3>Scheduled emails</h3></div>
+                <div id="dashEmails"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section class="view" id="view-calendar">
+          <div class="view-head">
+            <div class="h1">Calendar</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn ai-btn" id="calAiSuggestBtn">✨ AI schedule</button>
+              <button class="btn primary" data-open-event>+ New event</button>
+            </div>
+          </div>
+          <div class="cal-head">
+            <div class="cal-nav">
+              <button class="btn sm" id="calPrev">←</button>
+              <button class="btn sm" id="calToday">Today</button>
+              <button class="btn sm" id="calNext">→</button>
+            </div>
+            <div class="cal-month" id="calMonthLabel">—</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+          <div class="day-panel card" id="dayPanel" style="display:none;"></div>
+        </section>
+
+        <!-- VOICE NOTES -->
+        <section class="view" id="view-notes">
+          <div class="view-head">
+            <div class="h1">Voice notes</div>
+            <button class="btn primary" id="newNoteBtn">+ New voice note</button>
+          </div>
+          <div class="field" style="max-width:340px;">
+            <input type="text" id="noteFilter" placeholder="Search by headline or date (YYYY-MM-DD)…">
+          </div>
+          <div id="notesList"></div>
+        </section>
+
+        <!-- EMAILS -->
+        <section class="view" id="view-emails">
+          <div class="view-head">
+            <div class="h1">Emails</div>
+            <button class="btn primary" id="newEmailBtn">+ Compose</button>
+          </div>
+          <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent);">
+            <div class="faint" style="font-size:12px;">QODE Flow schedules emails and pre-fills them at send time — one click in your mail app sends it. For browser privacy reasons, actual sending requires your mail client.</div>
+          </div>
+          <div id="emailsList"></div>
+        </section>
+
+        <!-- PRIORITIES -->
+        <section class="view" id="view-priorities">
+          <div class="view-head">
+            <div class="h1">Priorities</div>
+            <div class="muted" id="prioSummary"></div>
+          </div>
+          <div id="prioBoard"></div>
+        </section>
+
+        <!-- FOCUS PLAN -->
+        <section class="view" id="view-plan">
+          <div class="view-head">
+            <div>
+              <div class="h1">Focus plan</div>
+              <div class="muted">Your day, structured so you don't stop mid-task</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn ai-btn" id="genPlanBtn">✨ Generate plan</button>
+              <button class="btn primary" id="addBlockBtn">+ Add block</button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:16px;border-left:3px solid var(--ai);">
+            <div style="font-size:12px;color:var(--text-muted);">Focus blocks protect your deep-work time. Buffer blocks give you breathing room between tasks. The AI plans around your existing calendar so meetings don't fragment your work.</div>
+          </div>
+          <div id="planBoard"></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="view" id="view-settings">
+          <div class="view-head"><div class="h1">Settings</div></div>
+          <div class="card">
+            <div class="card-head"><h3>Notifications</h3></div>
+            <p class="muted" style="margin-top:0;font-size:12.5px;">Get alerted when a meeting starts, email is ready to send, or something high-priority is due.</p>
+            <div id="notifSettingStatus" class="faint" style="margin-bottom:10px;font-size:12px;"></div>
+            <button class="btn primary" id="enableNotifBtn">Enable notifications</button>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Defaults</h3></div>
+            <div class="field" style="max-width:220px;">
+              <label>Default priority</label>
+              <select id="defaultPriority">
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="field" style="max-width:220px;">
+              <label>AI assistant language</label>
+              <select id="aiLanguage">
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="cs-CZ">Czech</option>
+                <option value="de-DE">German</option>
+                <option value="fr-FR">French</option>
+                <option value="es-ES">Spanish</option>
+              </select>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Data</h3></div>
+            <p class="muted" style="margin-top:0;font-size:12.5px;">Everything you create is stored privately in your browser.</p>
+            <button class="btn danger" id="clearDataBtn">Clear all QODE Flow data</button>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>How QODE Flow works</h3></div>
+            <ul class="muted" style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;">
+              <li><b style="color:var(--text);">/zoom, /meet, /teams</b> vytvoří schůzku a otevřou panel s pozvánkou — jedním klikem se odešle e-mailem všem účastníkům.</li>
+              <li><b style="color:var(--text);">AI asistent</b> rozumí přirozenému jazyku — řekni mu „Naplánuj Zoom zítra ve 14:00 s Jardou" a udělá to sám.</li>
+              <li><b style="color:var(--text);">Hlas → text</b> funguje v AI asistentovi i v hlasových poznámkách přes rozpoznávání řeči prohlížeče (nejlépe Chrome/Edge).</li>
+              <li><b style="color:var(--text);">Focus plán</b> rozdělí tvůj den na bloky, takže tě nic nevytrhne ze soustředění.</li>
+              <li><b style="color:var(--text);">Naplánovaný e-mail</b> otevře tvůj mailový klient předvyplněný ve zvolený čas.</li>
+            </ul>
+          </div>
+        </section>
+
+      </div><!-- end .content -->
+
+      <!-- AI ASSISTANT PANEL -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="ai-panel-head">
+          <h4><span class="ai-live-dot"></span> AI Assistant</h4>
+          <button class="btn sm ghost" id="aiPanelClose" style="font-size:16px;">×</button>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+          <div class="ai-msg system">I'm ready. You can speak or type.</div>
+          <div class="ai-msg assistant">
+            <div class="ai-tag">QODE AI</div>
+            Ahoj! Jsem QODE AI. Umím plánovat schůzky, posílat pozvánky, psát e-maily, vytvářet hlasové poznámky a strukturovat tvůj den. Zkus říct <em>"Naplánuj Zoom s alice@example.com zítra ve 15:00"</em> nebo <em>"Naplánuj mi den"</em>.
+          </div>
+        </div>
+        <div class="ai-input-area">
+          <div class="ai-actions" id="aiQuickActions">
+            <span class="ai-action-chip" data-prompt="Plan my day">📅 Plan my day</span>
+            <span class="ai-action-chip" data-prompt="What's next on my schedule?">⏭ What's next</span>
+            <span class="ai-action-chip" data-prompt="Set up a Zoom meeting for today">📹 Zoom call</span>
+            <span class="ai-action-chip" data-prompt="Set up a Google Meet for today">🟢 Meet call</span>
+            <span class="ai-action-chip" data-prompt="Set up a Teams meeting for today">🔵 Teams call</span>
+            <span class="ai-action-chip" data-prompt="Remind me of my priorities">⚠ My priorities</span>
+            <span class="ai-action-chip" data-prompt="Add a focus block for deep work today for 90 minutes starting now">🧠 Focus block</span>
+            <span class="ai-action-chip" data-prompt="Draft a voice note with today's key thoughts">🎙 New note</span>
+          </div>
+          <div class="ai-voice-row">
+            <textarea class="ai-text-input" id="aiTextInput" placeholder="Ask me anything or speak…" rows="1"></textarea>
+            <button class="ai-mic-btn" id="aiMicBtn" title="Voice input">🎙</button>
+            <button class="ai-send-btn" id="aiSendBtn">Send</button>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-faint);text-align:center;" id="aiVoiceStatus"></div>
+        </div>
+      </div>
+
+    </div><!-- end .content-area -->
+    <button class="ai-toggle-btn" id="aiToggleFloatBtn" title="Open AI Assistant">AI</button>
+  </main>
+</div>
+
+<!-- FOCUS BLOCKER -->
+<div id="focusBlocker">
+  <div class="fb-card">
+    <h2>🧠 Focus time</h2>
+    <p id="fbTaskName">Deep work block active</p>
+    <div class="fb-timer" id="fbTimer">25:00</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn primary" id="fbDismissBtn">I need a break</button>
+      <button class="btn" id="fbKeepBtn">Keep working</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="modal-backdrop" id="eventModalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3 id="eventModalTitle">New event</h3><button class="modal-close" data-close>×</button></div>
+    <input type="hidden" id="eventId">
+    <div class="field"><label>Title</label><input type="text" id="eventTitle" placeholder="Quarterly planning"></div>
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="eventDate"></div>
+      <div class="field"><label>Time</label><input type="time" id="eventTime"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Duration (min)</label><input type="number" id="eventDuration" value="30" min="5" step="5"></div>
+      <div class="field"><label>Priority</label>
+        <select id="eventPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Platform</label>
+      <select id="eventPlatform">
+        <option value="none">No video call</option>
+        <option value="zoom">Zoom</option>
+        <option value="meet">Google Meet</option>
+        <option value="teams">Microsoft Teams</option>
+        <option value="custom">Custom link</option>
+      </select>
+    </div>
+    <div class="field" id="eventCustomLinkField" style="display:none;"><label>Link</label><input type="text" id="eventCustomLink" placeholder="https://…"></div>
+    <div class="field"><label>Attendees (comma-separated emails)</label><input type="text" id="eventAttendees" placeholder="alice@co.com, bob@co.com"></div>
+    <div class="checkline"><input type="checkbox" id="eventSendInvite"> <span>Draft an invite email to attendees on save</span></div>
+    <div class="field"><label>Notes</label><textarea id="eventNotes" rows="2" placeholder="Optional"></textarea></div>
+    <div class="btn-row">
+      <button class="btn primary" id="eventSaveBtn">Save event</button>
+      <button class="btn danger" id="eventDeleteBtn" style="display:none;">Delete</button>
+      <button class="btn ghost" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-backdrop" id="noteModalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3>Voice note</h3><button class="modal-close" data-close>×</button></div>
+    <input type="hidden" id="noteId">
+    <div class="row2">
+      <div class="field"><label>Headline</label><input type="text" id="noteHeadline" placeholder="Idea for the launch email"></div>
+      <div class="field"><label>Date</label><input type="date" id="noteDate"></div>
+    </div>
+    <div class="field"><label>Priority</label>
+      <select id="notePriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+    </div>
+    <div class="mic-wrap">
+      <button class="mic-btn" id="micBtn">🎙</button>
+    </div>
+    <div class="rec-status" id="micStatus">Tap the mic and start talking</div>
+    <div class="field" style="margin-top:14px;"><label>Transcript</label><textarea class="transcript" id="noteTranscript" placeholder="Your words will appear here as you speak — or just type."></textarea></div>
+    <div class="btn-row">
+      <button class="btn primary" id="noteSaveBtn">Save note</button>
+      <button class="btn danger" id="noteDeleteBtn" style="display:none;">Delete</button>
+      <button class="btn ghost" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMAIL MODAL -->
+<div class="modal-backdrop" id="emailModalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3>Compose email</h3><button class="modal-close" data-close>×</button></div>
+    <input type="hidden" id="emailId">
+    <div class="field"><label>To (comma-separated)</label><input type="text" id="emailTo" placeholder="alice@co.com, bob@co.com"></div>
+    <div class="field"><label>Subject</label><input type="text" id="emailSubject" placeholder="Friday update"></div>
+    <div class="field"><label>Message</label><textarea id="emailBody" rows="6" placeholder="Write what you want to send…"></textarea></div>
+    <div class="row2">
+      <div class="field"><label>Send date</label><input type="date" id="emailDate"></div>
+      <div class="field"><label>Send time</label><input type="time" id="emailTime"></div>
+    </div>
+    <div class="field"><label>Priority</label>
+      <select id="emailPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="emailScheduleBtn">Schedule send</button>
+      <button class="btn" id="emailSendNowBtn">Send now</button>
+      <button class="btn danger" id="emailDeleteBtn" style="display:none;">Delete</button>
+      <button class="btn ghost" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN BLOCK MODAL -->
+<div class="modal-backdrop" id="blockModalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3 id="blockModalTitle">Add focus block</h3><button class="modal-close" data-close>×</button></div>
+    <input type="hidden" id="blockId">
+    <div class="field"><label>Block name</label><input type="text" id="blockTitle" placeholder="Deep work: report writing"></div>
+    <div class="field"><label>Type</label>
+      <select id="blockType">
+        <option value="focus">🧠 Focus (protected deep work)</option>
+        <option value="buffer">🌿 Buffer (transition / rest)</option>
+        <option value="meeting">📹 Meeting slot</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="blockDate"></div>
+      <div class="field"><label>Start time</label><input type="time" id="blockStart"></div>
+    </div>
+    <div class="field" style="max-width:160px;"><label>Duration (min)</label><input type="number" id="blockDuration" value="90" min="5" step="5"></div>
+    <div class="field"><label>Priority</label>
+      <select id="blockPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+    </div>
+    <div class="checkline"><input type="checkbox" id="blockFocusMode"> <span>Enable focus mode (blocks distractions while active)</span></div>
+    <div class="btn-row">
+      <button class="btn primary" id="blockSaveBtn">Save block</button>
+      <button class="btn danger" id="blockDeleteBtn" style="display:none;">Delete</button>
+      <button class="btn ghost" data-close>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-backdrop" id="helpModalBackdrop">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head"><h3>Command reference</h3><button class="modal-close" data-close>×</button></div>
+    <div style="font-family:var(--font-mono);font-size:12.5px;line-height:2;color:var(--text-muted);">
+      <div><span style="color:var(--accent);">/zoom</span> Team sync 2026-06-25 14:00 alice@co.com bob@co.com</div>
+      <div class="faint" style="margin-bottom:8px;">→ Creates Zoom meeting, queues invites, auto-joins if time is now.</div>
+      <div><span style="color:var(--accent);">/meet</span> 1:1 with Sam 15:30 sam@co.com</div>
+      <div class="faint" style="margin-bottom:8px;">→ Same as /zoom, using Google Meet.</div>
+      <div><span style="color:var(--accent);">/teams</span> Sprint review 16:00 dev@co.com</div>
+      <div class="faint" style="margin-bottom:8px;">→ Same as /zoom, using Microsoft Teams.</div>
+      <div><span style="color:var(--accent);">/event</span> Dentist 2026-06-26 09:00 low</div>
+      <div class="faint" style="margin-bottom:8px;">→ Opens a new calendar event pre-filled.</div>
+      <div><span style="color:var(--accent);">/note</span> Idea for the launch email</div>
+      <div class="faint" style="margin-bottom:8px;">→ Opens a voice note with that headline, ready to record.</div>
+      <div><span style="color:var(--accent);">/email</span> to:alice@co.com subject:"Friday update" at:2026-06-25 09:00</div>
+      <div class="faint" style="margin-bottom:8px;">→ Opens a draft pre-filled with the details you included.</div>
+      <div><span style="color:var(--accent);">/plan</span> [optional date like 2026-06-25]</div>
+      <div class="faint" style="margin-bottom:8px;">→ Opens Focus plan for that day.</div>
+      <div style="color:var(--ai);margin-top:6px;">✨ AI assistant — just speak or type naturally:</div>
+      <div class="faint">"Schedule a Zoom call with John tomorrow at 2pm" · "Plan my day" · "Draft an email to the team about the delay" · "What's my next meeting?" · "Add a focus block for writing from 9 to 11am"</div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ============ STORAGE ============ */
+const Storage = {
+  async get(key, fallback){
+    try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : fallback; }
+    catch(e){ return fallback; }
+  },
+  async set(key, value){
+    try{ await window.storage.set(key, JSON.stringify(value)); }
+    catch(e){ console.error('storage set failed', key, e); }
+  }
+};
+
+let state = {
+  events: [],
+  notes: [],
+  emails: [],
+  blocks: [],      // focus plan blocks
+  notifLog: [],
+  settings: { notifPermission:'default', defaultPriority:'medium', aiLanguage:'en-US' }
+};
+
+const saveEvents  = () => Storage.set('events', state.events);
+const saveNotes   = () => Storage.set('voice-notes', state.notes);
+const saveEmails  = () => Storage.set('emails', state.emails);
+const saveBlocks  = () => Storage.set('focus-blocks', state.blocks);
+const saveNotifLog= () => Storage.set('notif-log', state.notifLog);
+const saveSettings= () => Storage.set('settings', state.settings);
+
+/* ============ HELPERS ============ */
+function uid(p){ return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayStr(){ const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function nowTimeStr(){ const d=new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+function randDigits(n){ let s=''; for(let i=0;i<n;i++) s+=Math.floor(Math.random()*10); return s; }
+function randCode(){ const c='abcdefghijkmnpqrstuvwxyz'; const part=l=>Array.from({length:l},()=>c[Math.floor(Math.random()*c.length)]).join(''); return `${part(3)}-${part(4)}-${part(3)}`; }
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function formatDateHuman(dStr){
+  if(!dStr) return '';
+  const d=new Date(dStr+'T00:00:00');
+  const today=new Date(); today.setHours(0,0,0,0);
+  const diff=Math.round((d-today)/86400000);
+  if(diff===0) return 'Today';
+  if(diff===1) return 'Tomorrow';
+  if(diff===-1) return 'Yesterday';
+  return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:d.getFullYear()!==today.getFullYear()?'numeric':undefined});
+}
+function formatTimeHuman(tStr){
+  if(!tStr) return '';
+  const [h,m]=tStr.split(':').map(Number);
+  const ap=h>=12?'PM':'AM'; const hh=h%12===0?12:h%12;
+  return `${hh}:${pad(m)} ${ap}`;
+}
+function combinedDate(dateStr,timeStr){ return new Date(`${dateStr}T${timeStr||'00:00'}:00`); }
+
+function toast(msg, type=''){
+  const el=document.createElement('div');
+  el.className='toast'+(type?' '+type:'');
+  el.textContent=msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 4200);
+}
+function logDispatch(msg){
+  const wrap=document.getElementById('dispatchLog');
+  const line=document.createElement('div');
+  line.className='line';
+  line.innerHTML=`<span class="t">›</span><span>${escapeHtml(msg)}</span>`;
+  wrap.prepend(line);
+  while(wrap.children.length>4) wrap.removeChild(wrap.lastChild);
+}
+function notify(title, body){
+  const entry={id:uid('n'),title,body,time:Date.now()};
+  state.notifLog.unshift(entry);
+  state.notifLog=state.notifLog.slice(0,40);
+  saveNotifLog();
+  renderBell();
+  toast(`${title} — ${body}`,'notif');
+  if('Notification' in window && Notification.permission==='granted'){
+    try{ new Notification(title,{body}); }catch(e){}
+  }
+}
+
+/* ============ NAV ============ */
+const views=['dashboard','calendar','notes','emails','priorities','plan','settings'];
+function switchView(name){
+  views.forEach(v=>{ document.getElementById('view-'+v).classList.toggle('active',v===name); });
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  if(name==='calendar') renderCalendar();
+  if(name==='priorities') renderPriorities();
+  if(name==='dashboard') renderDashboard();
+  if(name==='plan') renderPlanBoard();
+}
+document.getElementById('nav').addEventListener('click',e=>{
+  const btn=e.target.closest('.nav-item');
+  if(btn) switchView(btn.dataset.view);
+});
+
+/* ============ DISPATCH ============ */
+function extractDate(s){ const m=s.match(/\b(\d{4}-\d{2}-\d{2})\b/); return m?m[1]:null; }
+function extractTime(s){ const m=s.match(/\b([0-2]?\d:[0-5]\d)\b/); return m?(m[1].length===4?'0'+m[1]:m[1]):null; }
+function extractEmails(s){ const m=s.match(/[\w.+-]+@[\w-]+\.[\w.-]+/g); return m||[]; }
+function extractPriority(s){ const m=s.match(/(?:^|\s)(high|medium|low)(?:\s|$)/i); return m?m[1].toLowerCase():null; }
+function stripTokens(s,tokens){
+  let out=s;
+  tokens.filter(Boolean).forEach(t=>{ out=out.split(t).join(' '); });
+  return out.replace(/[,]/g,' ').replace(/\s+/g,' ').trim();
+}
+function quoted(s,key){ const m=s.match(new RegExp(key+':"([^"]*)"')); return m?m[1]:null; }
+
+function parseCommand(raw){
+  const text=raw.trim();
+  if(!text.startsWith('/')) return null;
+  const spaceIdx=text.indexOf(' ');
+  const cmd=(spaceIdx===-1?text:text.slice(0,spaceIdx)).toLowerCase();
+  const rest=spaceIdx===-1?'':text.slice(spaceIdx+1);
+  return {cmd,rest};
+}
+
+function dispatch(raw){
+  if(!raw||!raw.trim()) return;
+  const parsed=parseCommand(raw);
+  if(!parsed){ sendToAI(raw); return; } // non-command → send to AI
+  const {cmd,rest}=parsed;
+  switch(cmd){
+    case '/zoom': createMeeting('zoom',rest); break;
+    case '/meet': createMeeting('meet',rest); break;
+    case '/teams': createMeeting('teams',rest); break;
+    case '/event': openEventModalFromCommand(rest); break;
+    case '/note': openNoteModalFromCommand(rest); break;
+    case '/email': openEmailModalFromCommand(rest); break;
+    case '/plan': switchView('plan'); break;
+    case '/help': openModal('helpModalBackdrop'); break;
+    default: toast(`Unknown command "${cmd}" — try /help or just ask the AI`);
+  }
+}
+
+function createMeeting(platform,rest){
+  const date=extractDate(rest)||todayStr();
+  const time=extractTime(rest)||nowTimeStr();
+  const emails=extractEmails(rest);
+  const priority=extractPriority(rest)||state.settings.defaultPriority||'medium';
+  let title=stripTokens(rest,[extractDate(rest),extractTime(rest),priority,...emails]).trim();
+  if(!title) title=platform==='zoom'?'Zoom meeting':platform==='teams'?'Teams call':'Meet call';
+
+  let link;
+  if(platform==='zoom') link=`https://zoom.us/j/${randDigits(10)}`;
+  else if(platform==='meet') link=`https://meet.google.com/${randCode()}`;
+  else if(platform==='teams') link=`https://teams.microsoft.com/l/meetup-join/19%3ameeting_${randCode().replace(/-/g,'')}%40thread.v2/0`;
+
+  const ev={id:uid('ev'),title,date,time,durationMin:30,platform,link,attendees:emails,priority,type:'meeting',notes:'',created:Date.now()};
+  state.events.push(ev);
+  saveEvents();
+  const platformLabel=platform==='zoom'?'Zoom':platform==='teams'?'Teams':'Google Meet';
+  logDispatch(`Naplánováno: ${platformLabel} — "${title}" · ${formatDateHuman(date)} ${formatTimeHuman(time)}`);
+  renderAllSoft();
+  maybeAutoStart(ev);
+  switchView('dashboard');
+  if(emails.length){
+    // Show invite panel — more reliable than blind window.open for all platforms
+    setTimeout(()=>showInvitePanel(ev), 400);
+  } else {
+    toast(`Schůzka vytvořena`, 'notif');
+  }
+}
+
+function buildInviteMailto(ev){
+  const to=ev.attendees.join(',');
+  const platformLabel=ev.platform==='zoom'?'Zoom':ev.platform==='meet'?'Google Meet':ev.platform==='teams'?'Microsoft Teams':'Video call';
+  const subject=encodeURIComponent(`[${platformLabel}] ${ev.title}`);
+  const bodyLines=[
+    `Zve tě na: ${ev.title}`,
+    ``,
+    `Datum: ${ev.date}`,
+    `Čas: ${formatTimeHuman(ev.time)}`,
+    `Platforma: ${platformLabel}`,
+    ``,
+    `Připojit se: ${ev.link}`,
+    ``,
+    `──────────────────`,
+    `Posláno přes QODE Flow`
+  ];
+  const body=encodeURIComponent(bodyLines.join('\n'));
+  return `mailto:${to}?subject=${subject}&body=${body}`;
+}
+
+function sendInvites(ev){
+  const mailto=buildInviteMailto(ev);
+  // Try window.open first; if blocked fall back to location.href
+  const opened=window.open(mailto,'_blank');
+  if(!opened){
+    // popup blocked — use location.href which always works
+    const a=document.createElement('a');
+    a.href=mailto; a.target='_blank'; a.rel='noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  // Also copy join link to clipboard as backup
+  if(navigator.clipboard&&ev.link){
+    navigator.clipboard.writeText(ev.link).catch(()=>{});
+  }
+  logDispatch(`Pozvánka odeslána pro ${ev.attendees.length} hosty`);
+  toast(`📧 Pozvánka otevřena v e-mailu · odkaz zkopírován do schránky`);
+}
+
+function showInvitePanel(ev){
+  // Fallback UI if mail client won't open — show copyable invite
+  const mailto=buildInviteMailto(ev);
+  const panel=document.createElement('div');
+  panel.style.cssText='position:fixed;inset:0;background:rgba(8,9,11,.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const platformLabel=ev.platform==='zoom'?'Zoom':ev.platform==='meet'?'Google Meet':ev.platform==='teams'?'Microsoft Teams':'Video call';
+  panel.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;max-width:440px;width:100%;">
+    <div style="font-family:var(--font-display);font-size:15px;font-weight:700;margin-bottom:4px;">📧 Pozvánka připravena</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">Klikni "Otevřít v e-mailu" nebo zkopíruj odkaz ručně.</div>
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text-muted);margin-bottom:14px;">
+      <b style="color:var(--text);">Pro:</b> ${escapeHtml(ev.attendees.join(', '))}<br>
+      <b style="color:var(--text);">Platforma:</b> ${platformLabel}<br>
+      <b style="color:var(--text);">Odkaz:</b> <span style="color:var(--accent);word-break:break-all;">${escapeHtml(ev.link)}</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="${mailto}" style="background:var(--accent);color:#1a1206;border:none;padding:8px 14px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;text-decoration:none;">Otevřít v e-mailu</a>
+      <button id="copyInviteLink" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:600;cursor:pointer;">Kopírovat odkaz</button>
+      <button id="closeInvitePanel" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:8px 14px;border-radius:var(--radius-sm);font-size:12.5px;cursor:pointer;">Zavřít</button>
+    </div>
+  </div>`;
+  document.body.appendChild(panel);
+  panel.querySelector('#copyInviteLink').addEventListener('click',()=>{
+    navigator.clipboard.writeText(ev.link).then(()=>toast('Odkaz zkopírován!')).catch(()=>{});
+  });
+  panel.querySelector('#closeInvitePanel').addEventListener('click',()=>panel.remove());
+  panel.addEventListener('click',e=>{ if(e.target===panel) panel.remove(); });
+}
+
+function maybeAutoStart(ev){
+  const target=combinedDate(ev.date,ev.time);
+  const diff=target-new Date();
+  if(diff<=120000){ // within 2 min → open now
+    setTimeout(()=>{
+      window.open(ev.link,'_blank');
+      notify('Meeting started',`${ev.title} is live — joining room now.`);
+      logDispatch(`"${ev.title}" started — opened the room`);
+    },Math.max(0,diff));
+  }
+}
+
+function openEventModalFromCommand(rest){
+  const date=extractDate(rest)||todayStr();
+  const time=extractTime(rest)||'';
+  const priority=extractPriority(rest)||state.settings.defaultPriority||'medium';
+  const title=stripTokens(rest,[extractDate(rest),extractTime(rest),priority]).trim();
+  openEventModal(null,{title,date,time,priority});
+  logDispatch(`Drafted event "${title||'Untitled'}"`);
+}
+function openNoteModalFromCommand(rest){
+  openNoteModal(null,{headline:rest.trim(),date:todayStr()});
+  logDispatch(`Opened voice note "${rest.trim()||'Untitled'}"`);
+}
+function openEmailModalFromCommand(rest){
+  const subj=quoted(rest,'subject');
+  const toMatch=rest.match(/to:(\S+)/);
+  const atDate=extractDate(rest);
+  const atTime=extractTime(rest);
+  openEmailModal(null,{to:toMatch?toMatch[1].replace(/,/g,', '):'',subject:subj||'',date:atDate||todayStr(),time:atTime||''});
+  logDispatch(`Opened email draft${subj?' "'+subj+'"':''}`);
+}
+
+const dispatchInput=document.getElementById('dispatchInput');
+document.getElementById('dispatchRun').addEventListener('click',()=>{ dispatch(dispatchInput.value); dispatchInput.value=''; });
+dispatchInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ dispatch(dispatchInput.value); dispatchInput.value=''; } });
+dispatchInput.addEventListener('focus',()=>document.getElementById('dispatchBar').classList.add('focused'));
+dispatchInput.addEventListener('blur',()=>document.getElementById('dispatchBar').classList.remove('focused'));
+document.getElementById('chips').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip');
+  if(!chip) return;
+  if(chip.id==='helpChip'){ openModal('helpModalBackdrop'); return; }
+  if(chip.id==='aiChipBtn'){ openAiPanel(); document.getElementById('aiTextInput').focus(); return; }
+  dispatchInput.value=chip.dataset.fill||'';
+  dispatchInput.focus();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault(); dispatchInput.focus();
+  }
+});
+
+/* ============ MODALS ============ */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',e=>{
+  closeModal(e.target.closest('.modal-backdrop').id);
+}));
+document.querySelectorAll('.modal-backdrop').forEach(bd=>bd.addEventListener('click',e=>{ if(e.target===bd) closeModal(bd.id); }));
+
+/* ---- Event modal ---- */
+document.querySelectorAll('[data-open-event]').forEach(b=>b.addEventListener('click',()=>openEventModal(null,{date:selectedCalDay||todayStr()})));
+document.getElementById('eventPlatform').addEventListener('change',e=>{
+  document.getElementById('eventCustomLinkField').style.display=e.target.value==='custom'?'block':'none';
+});
+function openEventModal(id,prefill={}){
+  const isEdit=!!id;
+  document.getElementById('eventModalTitle').textContent=isEdit?'Edit event':'New event';
+  document.getElementById('eventId').value=id||'';
+  let ev=isEdit?state.events.find(e=>e.id===id):null;
+  document.getElementById('eventTitle').value=ev?.title??prefill.title??'';
+  document.getElementById('eventDate').value=ev?.date??prefill.date??todayStr();
+  document.getElementById('eventTime').value=ev?.time??prefill.time??'';
+  document.getElementById('eventDuration').value=ev?.durationMin??30;
+  document.getElementById('eventPriority').value=ev?.priority??prefill.priority??state.settings.defaultPriority??'medium';
+  document.getElementById('eventPlatform').value=ev?.platform??'none';
+  document.getElementById('eventCustomLinkField').style.display=ev?.platform==='custom'?'block':'none';
+  document.getElementById('eventCustomLink').value=ev?.platform==='custom'?(ev.link||''):'';
+  document.getElementById('eventAttendees').value=(ev?.attendees||[]).join(', ');
+  document.getElementById('eventSendInvite').checked=false;
+  document.getElementById('eventNotes').value=ev?.notes??'';
+  document.getElementById('eventDeleteBtn').style.display=isEdit?'inline-block':'none';
+  openModal('eventModalBackdrop');
+}
+document.getElementById('eventSaveBtn').addEventListener('click',()=>{
+  const id=document.getElementById('eventId').value||uid('ev');
+  const title=document.getElementById('eventTitle').value.trim()||'Untitled event';
+  const date=document.getElementById('eventDate').value||todayStr();
+  const time=document.getElementById('eventTime').value||'09:00';
+  const durationMin=parseInt(document.getElementById('eventDuration').value)||30;
+  const priority=document.getElementById('eventPriority').value;
+  const platform=document.getElementById('eventPlatform').value;
+  let link='';
+  if(platform==='zoom') link=`https://zoom.us/j/${randDigits(10)}`;
+  else if(platform==='meet') link=`https://meet.google.com/${randCode()}`;
+  else if(platform==='teams') link=`https://teams.microsoft.com/l/meetup-join/19%3ameeting_${randCode().replace(/-/g,'')}%40thread.v2/0`;
+  else if(platform==='custom') link=document.getElementById('eventCustomLink').value.trim();
+  const attendees=document.getElementById('eventAttendees').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const notes=document.getElementById('eventNotes').value.trim();
+  const sendInvite=document.getElementById('eventSendInvite').checked;
+  const existingIdx=state.events.findIndex(e=>e.id===id);
+  const ev={id,title,date,time,durationMin,platform,link,attendees,priority,type:platform==='none'?'event':'meeting',notes,created:existingIdx>=0?state.events[existingIdx].created:Date.now()};
+  if(existingIdx>=0) state.events[existingIdx]=ev; else state.events.push(ev);
+  saveEvents();
+  toast(existingIdx>=0?'Schůzka aktualizována':'Schůzka vytvořena');
+  if(sendInvite&&attendees.length) setTimeout(()=>showInvitePanel(ev),300);
+  closeModal('eventModalBackdrop');
+  renderAllSoft();
+  maybeAutoStart(ev);
+});
+document.getElementById('eventDeleteBtn').addEventListener('click',()=>{
+  const id=document.getElementById('eventId').value;
+  state.events=state.events.filter(e=>e.id!==id);
+  saveEvents(); closeModal('eventModalBackdrop'); renderAllSoft();
+  toast('Event deleted');
+});
+
+/* ---- Note modal & speech ---- */
+let recognition=null, recognizing=false, baseTranscript='';
+function speechSupported(){ return !!(window.SpeechRecognition||window.webkitSpeechRecognition); }
+function getRecognition(lang,onResult,onEnd,onError){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return null;
+  const r=new SR();
+  r.continuous=true; r.interimResults=true; r.lang=lang||'en-US';
+  r.onresult=onResult;
+  r.onerror=onError||(() =>{});
+  r.onend=onEnd||(() =>{});
+  return r;
+}
+function startRecording(){
+  if(!speechSupported()){ document.getElementById('micStatus').textContent='Voice not supported in this browser — try Chrome or Edge.'; return; }
+  baseTranscript=document.getElementById('noteTranscript').value?document.getElementById('noteTranscript').value+' ':'';
+  recognition=getRecognition(state.settings.aiLanguage||'en-US',(e)=>{
+    let finalText=''; let interim='';
+    for(let i=0;i<e.results.length;i++){
+      if(e.results[i].isFinal) finalText+=e.results[i][0].transcript+' ';
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById('noteTranscript').value=(baseTranscript+finalText).trim()+(interim?' '+interim:'');
+  },()=>{ if(recognizing){ try{ recognition.start(); }catch(e){} } },
+  ()=>{ stopRecording(); document.getElementById('micStatus').textContent='Microphone unavailable — try typing instead.'; });
+  recognizing=true;
+  try{ recognition.start(); }catch(e){}
+  document.getElementById('micBtn').classList.add('live');
+  document.getElementById('micStatus').textContent='Listening… tap again to stop';
+}
+function stopRecording(){
+  recognizing=false;
+  if(recognition){ try{ recognition.stop(); }catch(e){} }
+  document.getElementById('micBtn').classList.remove('live');
+  document.getElementById('micStatus').textContent='Tap the mic and start talking';
+}
+document.getElementById('micBtn').addEventListener('click',()=>{ recognizing?stopRecording():startRecording(); });
+
+function openNoteModal(id,prefill={}){
+  stopRecording();
+  document.getElementById('noteId').value=id||'';
+  let n=id?state.notes.find(x=>x.id===id):null;
+  document.getElementById('noteHeadline').value=n?.headline??prefill.headline??'';
+  document.getElementById('noteDate').value=n?.date??prefill.date??todayStr();
+  document.getElementById('notePriority').value=n?.priority??state.settings.defaultPriority??'medium';
+  document.getElementById('noteTranscript').value=n?.transcript??'';
+  document.getElementById('micStatus').textContent=speechSupported()?'Tap the mic and start talking':'Voice typing not supported — type below.';
+  document.getElementById('noteDeleteBtn').style.display=id?'inline-block':'none';
+  openModal('noteModalBackdrop');
+}
+document.getElementById('newNoteBtn').addEventListener('click',()=>openNoteModal(null,{}));
+document.getElementById('noteSaveBtn').addEventListener('click',()=>{
+  stopRecording();
+  const id=document.getElementById('noteId').value||uid('note');
+  const headline=document.getElementById('noteHeadline').value.trim()||'Untitled note';
+  const date=document.getElementById('noteDate').value||todayStr();
+  const priority=document.getElementById('notePriority').value;
+  const transcript=document.getElementById('noteTranscript').value.trim();
+  const idx=state.notes.findIndex(n=>n.id===id);
+  const note={id,headline,date,priority,transcript,created:idx>=0?state.notes[idx].created:Date.now()};
+  if(idx>=0) state.notes[idx]=note; else state.notes.push(note);
+  saveNotes();
+  closeModal('noteModalBackdrop');
+  toast(idx>=0?'Voice note updated':'Voice note saved');
+  renderAllSoft();
+});
+document.getElementById('noteDeleteBtn').addEventListener('click',()=>{
+  stopRecording();
+  const id=document.getElementById('noteId').value;
+  state.notes=state.notes.filter(n=>n.id!==id);
+  saveNotes(); closeModal('noteModalBackdrop'); renderAllSoft();
+  toast('Voice note deleted');
+});
+document.getElementById('noteModalBackdrop').addEventListener('click',e=>{ if(e.target.closest('[data-close]')) stopRecording(); });
+document.getElementById('noteFilter').addEventListener('input',renderNotes);
+document.getElementById('newEmailBtn').addEventListener('click',()=>openEmailModal(null,{}));
+
+/* ---- Email modal ---- */
+function openEmailModal(id,prefill={}){
+  document.getElementById('emailId').value=id||'';
+  let em=id?state.emails.find(x=>x.id===id):null;
+  document.getElementById('emailTo').value=em?.to?.join(', ')??prefill.to??'';
+  document.getElementById('emailSubject').value=em?.subject??prefill.subject??'';
+  document.getElementById('emailBody').value=em?.body??prefill.body??'';
+  document.getElementById('emailDate').value=em?.sendDate??prefill.date??todayStr();
+  document.getElementById('emailTime').value=em?.sendTime??prefill.time??'';
+  document.getElementById('emailPriority').value=em?.priority??state.settings.defaultPriority??'medium';
+  document.getElementById('emailDeleteBtn').style.display=id?'inline-block':'none';
+  openModal('emailModalBackdrop');
+}
+function readEmailForm(){
+  return {
+    to:document.getElementById('emailTo').value.split(',').map(s=>s.trim()).filter(Boolean),
+    subject:document.getElementById('emailSubject').value.trim()||'(no subject)',
+    body:document.getElementById('emailBody').value,
+    sendDate:document.getElementById('emailDate').value||todayStr(),
+    sendTime:document.getElementById('emailTime').value||nowTimeStr(),
+    priority:document.getElementById('emailPriority').value
+  };
+}
+function mailtoFor(em){
+  return `mailto:${em.to.join(',')}?subject=${encodeURIComponent(em.subject)}&body=${encodeURIComponent(em.body)}`;
+}
+document.getElementById('emailScheduleBtn').addEventListener('click',()=>{
+  const form=readEmailForm();
+  const id=document.getElementById('emailId').value||uid('mail');
+  const idx=state.emails.findIndex(e=>e.id===id);
+  const isPast=combinedDate(form.sendDate,form.sendTime)<=new Date();
+  const status=isPast?'ready':'scheduled';
+  const em={id,...form,status,created:idx>=0?state.emails[idx].created:Date.now()};
+  if(idx>=0) state.emails[idx]=em; else state.emails.push(em);
+  saveEmails();
+  closeModal('emailModalBackdrop');
+  toast(isPast?'Email ready to send':`Email scheduled for ${formatDateHuman(form.sendDate)} ${formatTimeHuman(form.sendTime)}`);
+  renderAllSoft();
+});
+document.getElementById('emailSendNowBtn').addEventListener('click',()=>{
+  const form=readEmailForm();
+  const id=document.getElementById('emailId').value||uid('mail');
+  const idx=state.emails.findIndex(e=>e.id===id);
+  const em={id,...form,status:'sent',created:idx>=0?state.emails[idx].created:Date.now()};
+  if(idx>=0) state.emails[idx]=em; else state.emails.push(em);
+  saveEmails();
+  window.open(mailtoFor(em),'_blank');
+  closeModal('emailModalBackdrop');
+  toast('Opening your mail app to send this now');
+  renderAllSoft();
+});
+document.getElementById('emailDeleteBtn').addEventListener('click',()=>{
+  const id=document.getElementById('emailId').value;
+  state.emails=state.emails.filter(e=>e.id!==id);
+  saveEmails(); closeModal('emailModalBackdrop'); renderAllSoft();
+  toast('Email deleted');
+});
+function sendEmailNowById(id){
+  const em=state.emails.find(e=>e.id===id);
+  if(!em) return;
+  window.open(mailtoFor(em),'_blank');
+  em.status='sent'; saveEmails(); renderAllSoft();
+}
+
+/* ============ PLAN BLOCK MODAL ============ */
+document.getElementById('addBlockBtn').addEventListener('click',()=>openBlockModal(null,{date:todayStr()}));
+function openBlockModal(id,prefill={}){
+  document.getElementById('blockModalTitle').textContent=id?'Edit block':'Add focus block';
+  document.getElementById('blockId').value=id||'';
+  let bl=id?state.blocks.find(b=>b.id===id):null;
+  document.getElementById('blockTitle').value=bl?.title??prefill.title??'';
+  document.getElementById('blockType').value=bl?.type??prefill.type??'focus';
+  document.getElementById('blockDate').value=bl?.date??prefill.date??todayStr();
+  document.getElementById('blockStart').value=bl?.start??prefill.start??'09:00';
+  document.getElementById('blockDuration').value=bl?.duration??90;
+  document.getElementById('blockPriority').value=bl?.priority??state.settings.defaultPriority??'medium';
+  document.getElementById('blockFocusMode').checked=bl?.focusMode??false;
+  document.getElementById('blockDeleteBtn').style.display=id?'inline-block':'none';
+  openModal('blockModalBackdrop');
+}
+document.getElementById('blockSaveBtn').addEventListener('click',()=>{
+  const id=document.getElementById('blockId').value||uid('bl');
+  const title=document.getElementById('blockTitle').value.trim()||'Focus block';
+  const type=document.getElementById('blockType').value;
+  const date=document.getElementById('blockDate').value||todayStr();
+  const start=document.getElementById('blockStart').value||'09:00';
+  const duration=parseInt(document.getElementById('blockDuration').value)||90;
+  const priority=document.getElementById('blockPriority').value;
+  const focusMode=document.getElementById('blockFocusMode').checked;
+  const idx=state.blocks.findIndex(b=>b.id===id);
+  const bl={id,title,type,date,start,duration,priority,focusMode,created:idx>=0?state.blocks[idx].created:Date.now()};
+  if(idx>=0) state.blocks[idx]=bl; else state.blocks.push(bl);
+  saveBlocks();
+  closeModal('blockModalBackdrop');
+  toast(idx>=0?'Block updated':'Block added');
+  renderPlanBoard();
+  scheduleBlockStart(bl);
+});
+document.getElementById('blockDeleteBtn').addEventListener('click',()=>{
+  const id=document.getElementById('blockId').value;
+  state.blocks=state.blocks.filter(b=>b.id!==id);
+  saveBlocks(); closeModal('blockModalBackdrop'); renderPlanBoard();
+  toast('Block deleted');
+});
+
+/* ============ FOCUS BAR & BLOCKER ============ */
+let focusInterval=null;
+let focusEndTime=null;
+let focusBlock=null;
+let focusPaused=false;
+let focusPausedMs=0;
+let focusPauseStart=null;
+
+function startFocusSession(bl){
+  if(focusInterval) clearInterval(focusInterval);
+  focusBlock=bl;
+  const endTime=new Date(combinedDate(bl.date,bl.start).getTime()+bl.duration*60000);
+  focusEndTime=endTime;
+  focusPaused=false;
+  focusPausedMs=0;
+
+  document.getElementById('focusBar').classList.remove('hidden');
+  document.getElementById('focusTaskLabel').textContent=bl.title;
+
+  if(bl.focusMode){
+    document.getElementById('fbTaskName').textContent=bl.title;
+    document.getElementById('focusBlocker').classList.add('show');
+  }
+
+  focusInterval=setInterval(()=>{
+    if(focusPaused) return;
+    const now=new Date();
+    const remaining=focusEndTime-now-focusPausedMs;
+    if(remaining<=0){
+      clearInterval(focusInterval);
+      document.getElementById('focusBar').classList.add('hidden');
+      document.getElementById('focusBlocker').classList.remove('show');
+      notify('Focus session complete',`"${bl.title}" done!`);
+      toast('Focus session complete 🎉');
+      return;
+    }
+    const mins=Math.floor(remaining/60000);
+    const secs=Math.floor((remaining%60000)/1000);
+    const display=`${pad(mins)}:${pad(secs)}`;
+    document.getElementById('focusTimerDisplay').textContent=display;
+    document.getElementById('fbTimer').textContent=display;
+  },500);
+}
+
+function scheduleBlockStart(bl){
+  const target=combinedDate(bl.date,bl.start);
+  const diff=target-new Date();
+  if(diff>0 && diff<3600000){ // within the next hour
+    setTimeout(()=>{
+      notify('Focus block starting',`"${bl.title}" starts now — ${bl.duration} min block.`);
+      startFocusSession(bl);
+    },diff);
+  } else if(diff<=0 && diff>-bl.duration*60000){
+    // already in the block window
+    startFocusSession(bl);
+  }
+}
+
+document.getElementById('focusPauseBtn').addEventListener('click',()=>{
+  if(!focusPaused){
+    focusPaused=true;
+    focusPauseStart=Date.now();
+    document.getElementById('focusPauseBtn').textContent='Resume';
+    toast('Focus paused');
+  } else {
+    focusPausedMs+=Date.now()-focusPauseStart;
+    focusPaused=false;
+    document.getElementById('focusPauseBtn').textContent='Pause';
+    toast('Focus resumed');
+  }
+});
+document.getElementById('focusEndBtn').addEventListener('click',()=>{
+  if(focusInterval) clearInterval(focusInterval);
+  document.getElementById('focusBar').classList.add('hidden');
+  document.getElementById('focusBlocker').classList.remove('show');
+  focusBlock=null;
+  toast('Focus session ended');
+});
+document.getElementById('fbDismissBtn').addEventListener('click',()=>{
+  document.getElementById('focusBlocker').classList.remove('show');
+  toast('Take a short break — focus session continues in background');
+});
+document.getElementById('fbKeepBtn').addEventListener('click',()=>{
+  document.getElementById('focusBlocker').classList.remove('show');
+});
+
+/* ============ SCHEDULER ============ */
+function runScheduler(){
+  const now=new Date();
+  state.emails.forEach(em=>{
+    if(em.status==='scheduled'&&combinedDate(em.sendDate,em.sendTime)<=now){
+      em.status='ready';
+      notify('Email ready to send',`"${em.subject}" — open it from the Emails tab.`);
+    }
+  });
+  state.events.forEach(ev=>{
+    if(ev.type!=='meeting') return;
+    const target=combinedDate(ev.date,ev.time);
+    const minsAway=Math.round((target-now)/60000);
+    if(minsAway===10&&!ev._notified10){ ev._notified10=true; notify('Meeting in 10 minutes',ev.title); }
+    if(minsAway===0&&!ev._notifiedStart){ ev._notifiedStart=true; notify('Meeting starting now',`${ev.title} — join when ready.`); }
+  });
+  state.blocks.forEach(bl=>{
+    const target=combinedDate(bl.date,bl.start);
+    const minsAway=Math.round((target-now)/60000);
+    if(minsAway===5&&!bl._notified5){ bl._notified5=true; notify('Focus block in 5 minutes',`"${bl.title}" starts soon — wrap up what you're doing.`); }
+    if(minsAway===0&&!bl._notifiedStart){ bl._notifiedStart=true; notify('Focus block starting',`"${bl.title}" starts now.`); startFocusSession(bl); }
+  });
+  saveEmails();
+  renderBell();
+  if(document.getElementById('view-emails').classList.contains('active')) renderEmails();
+  if(document.getElementById('view-dashboard').classList.contains('active')) renderDashboard();
+}
+setInterval(runScheduler,20000);
+
+/* ============ BELL ============ */
+function renderBell(){
+  document.getElementById('bellDot').classList.toggle('show',state.notifLog.length>0);
+  const panel=document.getElementById('notifPanel');
+  if(!state.notifLog.length){
+    panel.innerHTML=`<div class="empty" style="padding:18px 8px;">No notifications yet</div>`;
+    return;
+  }
+  panel.innerHTML=state.notifLog.slice(0,15).map(n=>`
+    <div class="notif-item">
+      <div class="ti">${escapeHtml(n.title)}</div>
+      <div>${escapeHtml(n.body)}</div>
+      <div class="ts">${new Date(n.time).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+document.getElementById('bellBtn').addEventListener('click',e=>{
+  e.stopPropagation();
+  document.getElementById('notifPanel').classList.toggle('show');
+});
+document.addEventListener('click',()=>document.getElementById('notifPanel').classList.remove('show'));
+
+/* ============ DASHBOARD ============ */
+function upcomingEvents(limit){
+  const now=new Date();
+  return state.events.filter(e=>combinedDate(e.date,e.time)>=now).sort((a,b)=>combinedDate(a.date,a.time)-combinedDate(b.date,b.time)).slice(0,limit||999);
+}
+function todaysEvents(){ const t=todayStr(); return state.events.filter(e=>e.date===t).sort((a,b)=>a.time.localeCompare(b.time)); }
+function eventRowHtml(ev){
+  const pLabel=ev.platform==='zoom'?'Zoom':ev.platform==='meet'?'Meet':ev.platform==='teams'?'Teams':ev.platform==='custom'?'Call':'';
+  return `<div class="item-row" data-event-id="${ev.id}">
+    <div class="item-time">${formatTimeHuman(ev.time)}</div>
+    <div class="item-main">
+      <div class="item-title">${escapeHtml(ev.title)}</div>
+      <div class="item-sub">${formatDateHuman(ev.date)}${pLabel?' · '+pLabel:''}${ev.attendees?.length?' · '+ev.attendees.length+' guest'+(ev.attendees.length>1?'s':''):''}</div>
+    </div>
+    <span class="badge ${ev.priority}">${ev.priority}</span>
+    <div class="item-actions">
+      ${ev.link?`<button class="btn sm" data-join="${ev.id}">Join</button>`:''}
+      <button class="btn sm ghost" data-edit-event="${ev.id}">Edit</button>
+    </div>
+  </div>`;
+}
+function renderDashboard(){
+  document.getElementById('todayLine').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  const today=todaysEvents();
+  document.getElementById('dashToday').innerHTML=today.length?today.map(ev=>eventRowHtml(ev)).join(''):`<div class="empty"><b>Nothing on the books</b>Use /zoom, /meet, or ask the AI to add something.</div>`;
+  const upcoming=upcomingEvents().filter(e=>e.date!==todayStr()).slice(0,5);
+  document.getElementById('dashUpcoming').innerHTML=upcoming.length?upcoming.map(ev=>eventRowHtml(ev)).join(''):`<div class="empty">No upcoming events yet</div>`;
+  const counts={high:0,medium:0,low:0};
+  [...state.events.filter(e=>combinedDate(e.date,e.time)>=new Date()),...state.emails.filter(e=>e.status!=='sent')].forEach(i=>counts[i.priority]=(counts[i.priority]||0)+1);
+  document.getElementById('dashPriority').innerHTML=`
+    <div class="item-row"><span class="badge high">high</span><div class="item-main"><div class="item-title">${counts.high} item${counts.high!==1?'s':''}</div></div></div>
+    <div class="item-row"><span class="badge medium">medium</span><div class="item-main"><div class="item-title">${counts.medium} item${counts.medium!==1?'s':''}</div></div></div>
+    <div class="item-row"><span class="badge low">low</span><div class="item-main"><div class="item-title">${counts.low} item${counts.low!==1?'s':''}</div></div></div>`;
+  const recentNotes=[...state.notes].sort((a,b)=>b.created-a.created).slice(0,3);
+  document.getElementById('dashNotes').innerHTML=recentNotes.length?recentNotes.map(n=>`<div class="item-row"><div class="item-main"><div class="item-title">${escapeHtml(n.headline)}</div><div class="item-sub">${formatDateHuman(n.date)}</div></div><span class="badge ${n.priority}">${n.priority}</span></div>`).join(''):`<div class="empty">No voice notes yet</div>`;
+  const upEmails=state.emails.filter(e=>e.status!=='sent').sort((a,b)=>combinedDate(a.sendDate,a.sendTime)-combinedDate(b.sendDate,b.sendTime)).slice(0,3);
+  document.getElementById('dashEmails').innerHTML=upEmails.length?upEmails.map(em=>`<div class="item-row"><div class="item-main"><div class="item-title">${escapeHtml(em.subject)}</div><div class="item-sub">${em.status==='ready'?'Ready to send':formatDateHuman(em.sendDate)+' '+formatTimeHuman(em.sendTime)}</div></div><span class="badge ${em.status==='ready'?'live':em.priority}">${em.status==='ready'?'ready':em.priority}</span></div>`).join(''):`<div class="empty">No emails queued</div>`;
+}
+document.getElementById('view-dashboard').addEventListener('click',handleListClicks);
+document.getElementById('view-calendar').addEventListener('click',handleListClicks);
+function handleListClicks(e){
+  const join=e.target.closest('[data-join]');
+  if(join){ const ev=state.events.find(x=>x.id===join.dataset.join); if(ev) window.open(ev.link,'_blank'); return; }
+  const editEv=e.target.closest('[data-edit-event]');
+  if(editEv){ openEventModal(editEv.dataset.editEvent); return; }
+}
+document.getElementById('dashAiSuggestBtn').addEventListener('click',()=>{
+  openAiPanel();
+  sendToAI('Plan my day based on my current events and priorities');
+});
+document.getElementById('calAiSuggestBtn').addEventListener('click',()=>{
+  openAiPanel();
+  sendToAI('Look at my schedule and suggest a smart plan for this week');
+});
+
+/* ============ CALENDAR ============ */
+let calViewDate=new Date(), selectedCalDay=null;
+function renderCalendar(){
+  const y=calViewDate.getFullYear(), m=calViewDate.getMonth();
+  document.getElementById('calMonthLabel').textContent=calViewDate.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  const grid=document.getElementById('calGrid');
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const firstDay=new Date(y,m,1);
+  const startOffset=firstDay.getDay();
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const daysInPrevMonth=new Date(y,m,0).getDate();
+  const todayS=todayStr();
+  const cells=[];
+  for(let i=0;i<startOffset;i++) cells.push({d:daysInPrevMonth-startOffset+1+i,outside:true});
+  for(let d=1;d<=daysInMonth;d++) cells.push({d,outside:false,dateStr:`${y}-${pad(m+1)}-${pad(d)}`});
+  while(cells.length%7!==0) cells.push({d:cells.length,outside:true});
+  cells.forEach(c=>{
+    if(c.outside){ html+=`<div class="cal-day outside"><div class="dnum">${c.d}</div></div>`; return; }
+    const dayEvents=state.events.filter(e=>e.date===c.dateStr);
+    const dayBlocks=state.blocks.filter(b=>b.date===c.dateStr);
+    const dots=[...dayEvents.slice(0,4).map(e=>`<span style="background:var(--${e.priority==='high'?'high':e.priority==='medium'?'medium':'low'})"></span>`),...dayBlocks.slice(0,1).map(()=>`<span style="background:var(--ai)"></span>`)].join('');
+    const cls=['cal-day'];
+    if(c.dateStr===todayS) cls.push('today');
+    if(c.dateStr===selectedCalDay) cls.push('selected');
+    html+=`<div class="${cls.join(' ')}" data-day="${c.dateStr}"><div class="dnum">${c.d}</div><div class="cal-dots">${dots}</div></div>`;
+  });
+  grid.innerHTML=html;
+  if(selectedCalDay) renderDayPanel(selectedCalDay); else document.getElementById('dayPanel').style.display='none';
+}
+document.getElementById('calGrid').addEventListener('click',e=>{
+  const day=e.target.closest('[data-day]');
+  if(day){ selectedCalDay=day.dataset.day; renderCalendar(); }
+});
+document.getElementById('calPrev').addEventListener('click',()=>{ calViewDate.setMonth(calViewDate.getMonth()-1); renderCalendar(); });
+document.getElementById('calNext').addEventListener('click',()=>{ calViewDate.setMonth(calViewDate.getMonth()+1); renderCalendar(); });
+document.getElementById('calToday').addEventListener('click',()=>{ calViewDate=new Date(); selectedCalDay=todayStr(); renderCalendar(); });
+function renderDayPanel(dateStr){
+  const panel=document.getElementById('dayPanel');
+  panel.style.display='block';
+  const dayEvents=state.events.filter(e=>e.date===dateStr).sort((a,b)=>a.time.localeCompare(b.time));
+  const dayBlocks=state.blocks.filter(b=>b.date===dateStr).sort((a,b)=>a.start.localeCompare(b.start));
+  panel.innerHTML=`<div class="card-head"><h3>${formatDateHuman(dateStr)} · ${new Date(dateStr+'T00:00:00').toLocaleDateString(undefined,{weekday:'long'})}</h3>
+    <button class="btn sm primary" data-open-event>+ Event</button></div>
+    ${dayEvents.length?dayEvents.map(ev=>eventRowHtml(ev)).join(''):``}
+    ${dayBlocks.length?dayBlocks.map(bl=>`<div class="item-row"><div class="item-time">${formatTimeHuman(bl.start)}</div><div class="item-main"><div class="item-title">${escapeHtml(bl.title)}</div><div class="item-sub">${bl.duration}min · ${bl.type}</div></div><span class="plan-block-tag ${bl.type}">${bl.type}</span></div>`).join(''):''}
+    ${!dayEvents.length&&!dayBlocks.length?`<div class="empty">Nothing scheduled — click a date to add</div>`:''}`;
+  panel.querySelector('[data-open-event]').addEventListener('click',()=>openEventModal(null,{date:dateStr}));
+}
+
+/* ============ NOTES RENDER ============ */
+function renderNotes(){
+  const filter=document.getElementById('noteFilter').value.trim().toLowerCase();
+  let list=[...state.notes].sort((a,b)=>b.created-a.created);
+  if(filter) list=list.filter(n=>n.headline.toLowerCase().includes(filter)||n.date.includes(filter));
+  document.getElementById('notesList').innerHTML=list.length?list.map(n=>`
+    <div class="card">
+      <div class="card-head"><h3>${escapeHtml(n.headline)}</h3><span class="badge ${n.priority}">${n.priority}</span></div>
+      <div class="faint" style="margin-bottom:8px;font-size:11.5px;">${formatDateHuman(n.date)}</div>
+      <div style="font-size:13px;color:var(--text-muted);white-space:pre-wrap;">${escapeHtml(n.transcript)||'<span class="faint">No transcript yet</span>'}</div>
+      <div class="btn-row">
+        <button class="btn sm" data-edit-note="${n.id}">Edit / re-record</button>
+        ${n.transcript?`<button class="btn sm ai-btn" data-speak-note="${n.id}" title="Read aloud">🔊 Read aloud</button>`:''}
+        <button class="btn sm danger" data-del-note="${n.id}">Delete</button>
+      </div>
+    </div>`).join(''):`<div class="empty"><b>No voice notes yet</b>Try the mic in "+ New voice note", or /note command.</div>`;
+}
+let ttsUtterance=null;
+function speakText(text,btn){
+  if(!('speechSynthesis' in window)){ toast('Text-to-speech not supported in this browser'); return; }
+  window.speechSynthesis.cancel();
+  if(btn&&btn.dataset.speaking==='1'){ btn.dataset.speaking='0'; btn.textContent='🔊 Read aloud'; return; }
+  ttsUtterance=new SpeechSynthesisUtterance(text);
+  ttsUtterance.lang=state.settings.aiLanguage||'en-US';
+  ttsUtterance.rate=0.95;
+  ttsUtterance.onend=()=>{ if(btn){ btn.dataset.speaking='0'; btn.textContent='🔊 Read aloud'; } };
+  if(btn){ btn.dataset.speaking='1'; btn.textContent='⏹ Stop'; }
+  window.speechSynthesis.speak(ttsUtterance);
+}
+document.getElementById('notesList').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-edit-note]'); if(ed){ openNoteModal(ed.dataset.editNote); return; }
+  const sp=e.target.closest('[data-speak-note]');
+  if(sp){ const n=state.notes.find(x=>x.id===sp.dataset.speakNote); if(n) speakText(n.transcript,sp); return; }
+  const del=e.target.closest('[data-del-note]');
+  if(del){ state.notes=state.notes.filter(n=>n.id!==del.dataset.delNote); saveNotes(); renderAllSoft(); toast('Note deleted'); }
+});
+
+/* ============ EMAILS RENDER ============ */
+function renderEmails(){
+  const list=[...state.emails].sort((a,b)=>combinedDate(a.sendDate,a.sendTime)-combinedDate(b.sendDate,b.sendTime));
+  document.getElementById('emailsList').innerHTML=list.length?list.map(em=>`
+    <div class="card">
+      <div class="card-head"><h3>${escapeHtml(em.subject)}</h3><span class="badge ${em.status==='ready'?'live':em.status==='sent'?'low':em.priority}">${em.status==='ready'?'ready to send':em.status==='sent'?'sent':em.priority}</span></div>
+      <div class="faint" style="font-size:11.5px;margin-bottom:6px;">To: ${escapeHtml((em.to||[]).join(', ')||'—')} · ${em.status==='sent'?'Sent':formatDateHuman(em.sendDate)+' '+formatTimeHuman(em.sendTime)}</div>
+      <div style="font-size:13px;color:var(--text-muted);white-space:pre-wrap;max-height:80px;overflow:hidden;">${escapeHtml(em.body)||'<span class="faint">No message</span>'}</div>
+      <div class="btn-row">
+        ${em.status!=='sent'?`<button class="btn sm primary" data-send-email="${em.id}">Send now</button>`:''}
+        <button class="btn sm" data-edit-email="${em.id}">Edit</button>
+        <button class="btn sm danger" data-del-email="${em.id}">Delete</button>
+      </div>
+    </div>`).join(''):`<div class="empty"><b>Nothing queued</b>Use "+ Compose" or the /email command.</div>`;
+}
+document.getElementById('emailsList').addEventListener('click',e=>{
+  const send=e.target.closest('[data-send-email]'); if(send){ sendEmailNowById(send.dataset.sendEmail); return; }
+  const ed=e.target.closest('[data-edit-email]'); if(ed){ openEmailModal(ed.dataset.editEmail); return; }
+  const del=e.target.closest('[data-del-email]');
+  if(del){ state.emails=state.emails.filter(x=>x.id!==del.dataset.delEmail); saveEmails(); renderAllSoft(); toast('Email deleted'); }
+});
+
+/* ============ PRIORITIES ============ */
+function renderPriorities(){
+  const now=new Date();
+  const items=[];
+  state.events.filter(e=>combinedDate(e.date,e.time)>=now).forEach(e=>items.push({kind:'event',id:e.id,title:e.title,date:e.date,time:e.time,priority:e.priority}));
+  state.notes.forEach(n=>items.push({kind:'note',id:n.id,title:n.headline,date:n.date,time:'',priority:n.priority}));
+  state.emails.filter(e=>e.status!=='sent').forEach(em=>items.push({kind:'email',id:em.id,title:em.subject,date:em.sendDate,time:em.sendTime,priority:em.priority}));
+  state.blocks.forEach(bl=>items.push({kind:'block',id:bl.id,title:bl.title,date:bl.date,time:bl.start,priority:bl.priority}));
+  const groups={high:[],medium:[],low:[]};
+  items.forEach(i=>groups[i.priority]?.push(i));
+  Object.values(groups).forEach(g=>g.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)));
+  document.getElementById('prioSummary').textContent=`${groups.high.length} high · ${groups.medium.length} medium · ${groups.low.length} low`;
+  const kindIcon={event:'📅',note:'🎙',email:'✉',block:'🧠'};
+  function rows(list){
+    return list.length?list.map(i=>`
+      <div class="item-row">
+        <span style="width:18px;text-align:center;">${kindIcon[i.kind]}</span>
+        <div class="item-main"><div class="item-title">${escapeHtml(i.title)}</div><div class="item-sub">${formatDateHuman(i.date)}${i.time?' · '+formatTimeHuman(i.time):''} · ${i.kind}</div></div>
+        <select class="prio-select" data-reprio="${i.kind}:${i.id}">
+          <option value="high" ${i.priority==='high'?'selected':''}>High</option>
+          <option value="medium" ${i.priority==='medium'?'selected':''}>Medium</option>
+          <option value="low" ${i.priority==='low'?'selected':''}>Low</option>
+        </select>
+      </div>`).join(''):`<div class="empty">Nothing here</div>`;
+  }
+  document.getElementById('prioBoard').innerHTML=`
+    <div class="pgroup"><div class="pgroup-head"><span class="dotp high"></span><h4>High priority</h4><span class="cnt">${groups.high.length}</span></div><div class="card">${rows(groups.high)}</div></div>
+    <div class="pgroup"><div class="pgroup-head"><span class="dotp medium"></span><h4>Medium priority</h4><span class="cnt">${groups.medium.length}</span></div><div class="card">${rows(groups.medium)}</div></div>
+    <div class="pgroup"><div class="pgroup-head"><span class="dotp low"></span><h4>Low priority</h4><span class="cnt">${groups.low.length}</span></div><div class="card">${rows(groups.low)}</div></div>`;
+}
+document.getElementById('prioBoard').addEventListener('change',e=>{
+  const sel=e.target.closest('[data-reprio]');
+  if(!sel) return;
+  const [kind,id]=sel.dataset.reprio.split(':');
+  const val=sel.value;
+  if(kind==='event'){ const ev=state.events.find(x=>x.id===id); if(ev){ ev.priority=val; saveEvents(); } }
+  if(kind==='note'){ const n=state.notes.find(x=>x.id===id); if(n){ n.priority=val; saveNotes(); } }
+  if(kind==='email'){ const em=state.emails.find(x=>x.id===id); if(em){ em.priority=val; saveEmails(); } }
+  if(kind==='block'){ const bl=state.blocks.find(x=>x.id===id); if(bl){ bl.priority=val; saveBlocks(); } }
+  renderPriorities();
+  toast('Priority updated');
+});
+
+/* ============ PLAN BOARD ============ */
+function renderPlanBoard(){
+  const today=todayStr();
+  const upcoming7=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(); d.setDate(d.getDate()+i);
+    upcoming7.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`);
+  }
+  const dateMap={};
+  upcoming7.forEach(ds=>dateMap[ds]=[]);
+  [...state.events,...state.blocks].forEach(item=>{
+    if(dateMap[item.date]!==undefined){
+      dateMap[item.date].push({...item,isBlock:!!item.type});
+    }
+  });
+  const board=document.getElementById('planBoard');
+  if(!Object.values(dateMap).some(arr=>arr.length)){
+    board.innerHTML=`<div class="empty"><b>No plan blocks yet</b>Click "+ Add block" or tell the AI "Add a focus block for writing from 9 to 11am today".</div>`;
+    return;
+  }
+  board.innerHTML=upcoming7.map(ds=>{
+    const items=dateMap[ds].sort((a,b)=>(a.time||a.start||'').localeCompare(b.time||b.start||''));
+    if(!items.length) return '';
+    const label=formatDateHuman(ds);
+    return `<div class="plan-card">
+      <div class="card-head"><h3>${label}</h3><span class="faint" style="font-size:11px;">${items.length} item${items.length!==1?'s':''}</span></div>
+      ${items.map(item=>{
+        const isBlock=!!item.type&&['focus','buffer','meeting'].includes(item.type);
+        const time=item.time||item.start||'';
+        const typeTag=isBlock?`<span class="plan-block-tag ${item.type}">${item.type}</span>`:'';
+        return `<div class="plan-slot">
+          <div class="plan-slot-time">${formatTimeHuman(time)}</div>
+          <div class="plan-slot-body">
+            <div class="plan-slot-title">${escapeHtml(item.title)}${typeTag}</div>
+            <div class="plan-slot-sub">${isBlock?(item.duration+'min block'):(item.durationMin+'min · '+item.platform||'event')}</div>
+          </div>
+          <span class="badge ${item.priority}">${item.priority}</span>
+          ${isBlock?`<button class="btn sm" data-edit-block="${item.id}">Edit</button>`:`<button class="btn sm ghost" data-edit-event="${item.id}">Edit</button>`}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+document.getElementById('planBoard').addEventListener('click',e=>{
+  const eb=e.target.closest('[data-edit-block]'); if(eb){ openBlockModal(eb.dataset.editBlock); return; }
+  const ee=e.target.closest('[data-edit-event]'); if(ee){ openEventModal(ee.dataset.editEvent); return; }
+});
+document.getElementById('genPlanBtn').addEventListener('click',()=>{
+  openAiPanel();
+  sendToAI('Generate a full focus plan for my day. Look at my events, priorities, and schedule a mix of focus blocks, buffer time, and meetings so I can work without stopping mid-task.');
+});
+
+/* ============ SETTINGS ============ */
+function refreshNotifStatusUI(){
+  const perm=('Notification' in window)?Notification.permission:'unsupported';
+  const dot=document.getElementById('notif-dot');
+  const txt=document.getElementById('notif-status-txt');
+  const st=document.getElementById('notifSettingStatus');
+  if(perm==='granted'){ dot.classList.add('on'); txt.textContent='Notifications on'; st.textContent='Notifications are enabled.'; }
+  else if(perm==='unsupported'){ dot.classList.remove('on'); txt.textContent='Notifications unsupported'; st.textContent='This browser doesn\'t support notifications — QODE Flow will log alerts in the bell menu.'; }
+  else { dot.classList.remove('on'); txt.textContent='Notifications off'; st.textContent=perm==='denied'?'Notifications blocked in browser settings.':'Enable these to get alerted about meetings and emails.'; }
+}
+function refreshSpeechStatusUI(){
+  const dot=document.getElementById('speech-dot');
+  const txt=document.getElementById('speech-status-txt');
+  if(speechSupported()){ dot.classList.add('on'); txt.textContent='Voice ready'; }
+  else { dot.classList.remove('on'); txt.textContent='Voice unsupported'; }
+}
+document.getElementById('enableNotifBtn').addEventListener('click',async()=>{
+  if(!('Notification' in window)){ toast('This browser doesn\'t support notifications'); return; }
+  const perm=await Notification.requestPermission();
+  state.settings.notifPermission=perm; saveSettings();
+  refreshNotifStatusUI();
+  toast(perm==='granted'?'Notifications enabled':'Notifications not enabled');
+});
+document.getElementById('defaultPriority').addEventListener('change',e=>{ state.settings.defaultPriority=e.target.value; saveSettings(); toast('Default priority saved'); });
+document.getElementById('aiLanguage').addEventListener('change',e=>{ state.settings.aiLanguage=e.target.value; saveSettings(); toast('Language saved'); });
+document.getElementById('clearDataBtn').addEventListener('click',async()=>{
+  if(!confirm('This clears all events, notes, emails and focus blocks. Continue?')) return;
+  state.events=[]; state.notes=[]; state.emails=[]; state.blocks=[]; state.notifLog=[];
+  await Promise.all([saveEvents(),saveNotes(),saveEmails(),saveBlocks(),saveNotifLog()]);
+  renderAllSoft(); renderBell();
+  toast('All QODE Flow data cleared');
+});
+
+/* ============ COUNTS ============ */
+function renderCounts(){
+  document.getElementById('cnt-cal').textContent=upcomingEvents().length;
+  document.getElementById('cnt-notes').textContent=state.notes.length;
+  document.getElementById('cnt-emails').textContent=state.emails.filter(e=>e.status!=='sent').length;
+}
+function renderAllSoft(){
+  renderCounts();
+  renderDashboard();
+  if(document.getElementById('view-calendar').classList.contains('active')) renderCalendar();
+  renderNotes();
+  renderEmails();
+  if(document.getElementById('view-priorities').classList.contains('active')) renderPriorities();
+  if(document.getElementById('view-plan').classList.contains('active')) renderPlanBoard();
+}
+
+/* ============ AI ASSISTANT ============ */
+let aiRec=null, aiRecognizing=false, aiRecognitionBase='';
+const aiPanel=document.getElementById('aiPanel');
+const aiMessages=document.getElementById('aiMessages');
+const aiTextInput=document.getElementById('aiTextInput');
+
+function openAiPanel(){ aiPanel.classList.remove('collapsed'); }
+function closeAiPanel(){ aiPanel.classList.add('collapsed'); }
+document.getElementById('toggleAiBtn').addEventListener('click',()=>aiPanel.classList.toggle('collapsed'));
+document.getElementById('aiToggleFloatBtn').addEventListener('click',()=>{ aiPanel.classList.remove('collapsed'); document.getElementById('aiTextInput').focus(); });
+document.getElementById('aiPanelClose').addEventListener('click',closeAiPanel);
+
+function aiAddMsg(role, text){
+  const div=document.createElement('div');
+  div.className='ai-msg '+role;
+  if(role==='assistant') div.innerHTML=`<div class="ai-tag">QODE AI</div>${text.replace(/\n/g,'<br>')}`;
+  else div.textContent=text;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop=aiMessages.scrollHeight;
+  return div;
+}
+function aiShowThinking(){
+  const div=document.createElement('div');
+  div.className='ai-msg assistant ai-thinking-wrap';
+  div.innerHTML=`<div class="ai-thinking"><span></span><span></span><span></span></div>`;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop=aiMessages.scrollHeight;
+  return div;
+}
+
+function buildContext(){
+  const now=new Date();
+  const todayEvs=todaysEvents();
+  const upcoming=upcomingEvents(10);
+  const highPrio=state.events.filter(e=>e.priority==='high'&&combinedDate(e.date,e.time)>=now);
+  const pendingEmails=state.emails.filter(e=>e.status!=='sent').slice(0,5);
+  const blocks=state.blocks.filter(b=>combinedDate(b.date,b.start)>=now).slice(0,5);
+  const recentNotes=state.notes.slice(0,3);
+  return `Current date/time: ${now.toLocaleString()}
+Today's events: ${todayEvs.length?todayEvs.map(e=>`"${e.title}" at ${e.time}`).join(', '):'none'}
+Upcoming events (next 10): ${upcoming.length?upcoming.map(e=>`"${e.title}" on ${e.date} at ${e.time} [${e.priority}]`).join('; '):'none'}
+High priority items: ${highPrio.length?highPrio.map(e=>`"${e.title}" on ${e.date}`).join(', '):'none'}
+Pending emails: ${pendingEmails.length?pendingEmails.map(e=>`"${e.subject}" to ${(e.to||[]).join(',')} on ${e.sendDate}`).join('; '):'none'}
+Focus blocks: ${blocks.length?blocks.map(b=>`"${b.title}" on ${b.date} at ${b.start} (${b.duration}min, ${b.type})`).join('; '):'none'}
+Recent notes: ${recentNotes.length?recentNotes.map(n=>`"${n.headline}": ${(n.transcript||'').slice(0,80)}`).join('; '):'none'}`;
+}
+
+const SYSTEM_PROMPT = `You are QODE AI, a sharp personal productivity assistant embedded in QODE Flow. You help the user schedule meetings, plan their day, draft emails, create voice notes, and manage priorities — all without interrupting their workflow.
+
+When the user asks you to create or schedule something, respond with a JSON action block at the END of your message, like this:
+<action>{"type":"create_meeting","platform":"zoom","title":"Team sync","date":"2026-06-25","time":"14:00","emails":["alice@co.com"]}</action>
+<action>{"type":"create_event","title":"Dentist","date":"2026-06-25","time":"09:00","priority":"high"}</action>
+<action>{"type":"create_note","headline":"Product idea","transcript":"The user said to note this down."}</action>
+<action>{"type":"create_email","to":["alice@co.com"],"subject":"Hello","body":"Hi Alice,\\n\\nHope you're well!","sendDate":"2026-06-25","sendTime":"09:00"}</action>
+<action>{"type":"create_block","title":"Deep work","blockType":"focus","date":"2026-06-25","start":"09:00","duration":90}</action>
+<action>{"type":"plan_day","blocks":[{"title":"Email triage","blockType":"buffer","date":"2026-06-25","start":"08:30","duration":30},{"title":"Report writing","blockType":"focus","date":"2026-06-25","start":"09:00","duration":120}]}</action>
+
+Dates must use YYYY-MM-DD format. Times use HH:MM 24h format. Platform options: zoom, meet, teams. Block types: focus, buffer, meeting.
+
+Be concise and direct. After taking an action, briefly confirm what you did. If the user asks you to plan their day, look at their existing schedule and create focus blocks, buffers, and meeting slots that prevent task interruption. Always suggest a 5-minute buffer before meetings.`;
+
+async function sendToAI(userMsg){
+  openAiPanel();
+  if(!userMsg.trim()) return;
+  aiAddMsg('user',userMsg);
+  aiTextInput.value='';
+  const thinking=aiShowThinking();
+
+  const context=buildContext();
+  const messages=[{role:'user',content:`[CONTEXT]\n${context}\n\n[USER REQUEST]\n${userMsg}`}];
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:SYSTEM_PROMPT,
+        messages
+      })
+    });
+    const data=await resp.json();
+    thinking.remove();
+    const fullText=data.content?.map(b=>b.type==='text'?b.text:'').join('')||'Sorry, I couldn\'t process that.';
+
+    // Extract and execute actions
+    const actionMatches=[...fullText.matchAll(/<action>([\s\S]*?)<\/action>/g)];
+    const displayText=fullText.replace(/<action>[\s\S]*?<\/action>/g,'').trim();
+
+    const aiMsgEl=aiAddMsg('assistant',displayText||'Done!');
+    // Add speak button to AI response
+    if(displayText&&'speechSynthesis' in window){
+      const speakBtn=document.createElement('button');
+      speakBtn.className='btn sm ghost'; speakBtn.style.cssText='margin-top:6px;font-size:10px;color:var(--ai);border-color:rgba(167,139,250,.3);';
+      speakBtn.textContent='🔊 Read aloud';
+      speakBtn.addEventListener('click',()=>speakText(displayText,speakBtn));
+      aiMsgEl.appendChild(speakBtn);
+    }
+
+    for(const m of actionMatches){
+      try{
+        const act=JSON.parse(m[1]);
+        executeAiAction(act);
+      }catch(e){ console.warn('Action parse error',e); }
+    }
+  } catch(e){
+    thinking.remove();
+    aiAddMsg('assistant','I\'m having trouble connecting right now. You can still use commands like /zoom, /event, /email.');
+  }
+}
+
+function executeAiAction(act){
+  switch(act.type){
+    case 'create_meeting':{
+      const ev={id:uid('ev'),title:act.title||'Meeting',date:act.date||todayStr(),time:act.time||'09:00',durationMin:30,platform:act.platform||'zoom',attendees:act.emails||[],priority:'medium',type:'meeting',notes:'',created:Date.now()};
+      if(act.platform==='zoom') ev.link=`https://zoom.us/j/${randDigits(10)}`;
+      else if(act.platform==='meet') ev.link=`https://meet.google.com/${randCode()}`;
+      else ev.link=`https://teams.microsoft.com/l/meetup-join/${randCode()}`;
+      state.events.push(ev);
+      saveEvents();
+      if(ev.attendees.length) setTimeout(()=>showInvitePanel(ev),400);
+      maybeAutoStart(ev);
+      renderAllSoft();
+      logDispatch(`AI: Created ${act.platform} meeting "${ev.title}"`);
+      toast(`Meeting created: ${ev.title}`,'ai');
+      break;
+    }
+    case 'create_event':{
+      const ev={id:uid('ev'),title:act.title||'Event',date:act.date||todayStr(),time:act.time||'09:00',durationMin:act.duration||30,platform:'none',link:'',attendees:[],priority:act.priority||'medium',type:'event',notes:act.notes||'',created:Date.now()};
+      state.events.push(ev);
+      saveEvents(); renderAllSoft();
+      logDispatch(`AI: Created event "${ev.title}"`);
+      toast(`Event created: ${ev.title}`,'ai');
+      break;
+    }
+    case 'create_note':{
+      const note={id:uid('note'),headline:act.headline||'AI note',date:act.date||todayStr(),priority:act.priority||'medium',transcript:act.transcript||'',created:Date.now()};
+      state.notes.push(note);
+      saveNotes(); renderAllSoft();
+      toast(`Note created: ${note.headline}`,'ai');
+      break;
+    }
+    case 'create_email':{
+      const em={id:uid('mail'),to:act.to||[],subject:act.subject||'',body:act.body||'',sendDate:act.sendDate||todayStr(),sendTime:act.sendTime||'09:00',priority:act.priority||'medium',status:'scheduled',created:Date.now()};
+      state.emails.push(em);
+      saveEmails(); renderAllSoft();
+      toast(`Email scheduled: ${em.subject}`,'ai');
+      break;
+    }
+    case 'create_block':{
+      const bl={id:uid('bl'),title:act.title||'Focus block',type:act.blockType||'focus',date:act.date||todayStr(),start:act.start||'09:00',duration:act.duration||90,priority:act.priority||'medium',focusMode:false,created:Date.now()};
+      state.blocks.push(bl);
+      saveBlocks(); renderPlanBoard(); renderCounts();
+      scheduleBlockStart(bl);
+      toast(`Focus block added: ${bl.title}`,'ai');
+      break;
+    }
+    case 'plan_day':{
+      if(act.blocks&&Array.isArray(act.blocks)){
+        act.blocks.forEach(b=>{
+          const bl={id:uid('bl'),title:b.title||'Block',type:b.blockType||'focus',date:b.date||todayStr(),start:b.start||'09:00',duration:b.duration||60,priority:b.priority||'medium',focusMode:false,created:Date.now()};
+          state.blocks.push(bl);
+          scheduleBlockStart(bl);
+        });
+        saveBlocks(); renderPlanBoard(); renderCounts();
+        toast(`Plan created with ${act.blocks.length} blocks`,'ai');
+        switchView('plan');
+      }
+      break;
+    }
+  }
+}
+
+/* AI voice input */
+document.getElementById('aiMicBtn').addEventListener('click',()=>{
+  if(aiRecognizing){
+    aiRecognizing=false;
+    if(aiRec) try{ aiRec.stop(); }catch(e){}
+    document.getElementById('aiMicBtn').classList.remove('live');
+    document.getElementById('aiVoiceStatus').textContent='';
+    // send what was captured
+    const text=aiTextInput.value.trim();
+    if(text){ sendToAI(text); }
+  } else {
+    if(!speechSupported()){ toast('Voice not supported in this browser'); return; }
+    aiRecognitionBase=aiTextInput.value;
+    aiRec=getRecognition(state.settings.aiLanguage||'en-US',(e)=>{
+      let final=''; let interim='';
+      for(let i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal) final+=e.results[i][0].transcript+' ';
+        else interim+=e.results[i][0].transcript;
+      }
+      aiTextInput.value=(aiRecognitionBase+final).trim()+(interim?' '+interim:'');
+    },()=>{ if(aiRecognizing) try{ aiRec.start(); }catch(e){} },
+    ()=>{ aiRecognizing=false; document.getElementById('aiMicBtn').classList.remove('live'); document.getElementById('aiVoiceStatus').textContent=''; });
+    aiRecognizing=true;
+    try{ aiRec.start(); }catch(e){}
+    document.getElementById('aiMicBtn').classList.add('live');
+    document.getElementById('aiVoiceStatus').textContent='Listening… tap mic again to send';
+  }
+});
+
+document.getElementById('aiSendBtn').addEventListener('click',()=>{
+  const text=aiTextInput.value.trim();
+  if(!text) return;
+  sendToAI(text);
+});
+aiTextInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); const text=aiTextInput.value.trim(); if(text) sendToAI(text); }
+});
+document.getElementById('aiQuickActions').addEventListener('click',e=>{
+  const chip=e.target.closest('[data-prompt]');
+  if(chip) sendToAI(chip.dataset.prompt);
+});
+document.getElementById('aiChipBtn').addEventListener('click',()=>{
+  openAiPanel(); document.getElementById('aiTextInput').focus();
+});
+
+/* ============ INIT ============ */
+async function init(){
+  document.getElementById('eventDate').value=todayStr();
+  document.getElementById('noteDate').value=todayStr();
+  document.getElementById('emailDate').value=todayStr();
+  document.getElementById('blockDate').value=todayStr();
+  selectedCalDay=todayStr();
+
+  const [events,notes,emails,blocks,notifLog,settings]=await Promise.all([
+    Storage.get('events',[]),
+    Storage.get('voice-notes',[]),
+    Storage.get('emails',[]),
+    Storage.get('focus-blocks',[]),
+    Storage.get('notif-log',[]),
+    Storage.get('settings',{notifPermission:'default',defaultPriority:'medium',aiLanguage:'en-US'})
+  ]);
+  state.events=events; state.notes=notes; state.emails=emails;
+  state.blocks=blocks; state.notifLog=notifLog; state.settings=settings;
+
+  document.getElementById('defaultPriority').value=state.settings.defaultPriority||'medium';
+  document.getElementById('aiLanguage').value=state.settings.aiLanguage||'en-US';
+
+  refreshNotifStatusUI();
+  refreshSpeechStatusUI();
+  renderCounts();
+  renderDashboard();
+  renderNotes();
+  renderEmails();
+  renderBell();
+  runScheduler();
+
+  // Schedule any already-saved blocks
+  state.blocks.forEach(bl=>scheduleBlockStart(bl));
+}
+init();
+</script>
+</body>
+</html>
