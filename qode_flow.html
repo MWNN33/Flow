@@ -693,16 +693,16 @@ textarea.transcript{min-height:120px;font-size:13.5px;}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ============ SUPABASE ============ */
-const SUPABASE_URL = 'https://eowaqwmeytogakuzklfe.supabase.co';       // <-- fill in
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvd2Fxd21leXRvZ2FrdXprbGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzQzODMsImV4cCI6MjA5NzgxMDM4M30.V2UyPcXx6xpXpRTXezpa-y92mvoUyivoR8FTED1i76k';                  // <-- fill in
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://eowaqwmeytogakuzklfe.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvd2Fxd21leXRvZ2FrdXprbGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyMzQzODMsImV4cCI6MjA5NzgxMDM4M30.V2UyPcXx6xpXpRTXezpa-y92mvoUyivoR8FTED1i76k';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUserId = null;
 
 async function ensureAuth(){
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session){ currentUserId = session.user.id; return; }
-  const { data, error } = await supabase.auth.signInAnonymously();
+  const { data, error } = await supabaseClient.auth.signInAnonymously();
   if (error){ console.error('Sign-in failed', error); return; }
   currentUserId = data.user.id;
 }
@@ -729,13 +729,13 @@ function rowToEvent(r){
     created:new Date(r.created_at).getTime() };
 }
 async function loadEvents(){
-  const { data, error } = await supabase.from('events').select('*').order('created_at');
+  const { data, error } = await supabaseClient.from('events').select('*').order('created_at');
   if (error){ console.error(error); return []; }
   return data.map(rowToEvent);
 }
 async function saveEvents(){
-  await supabase.from('events').delete().eq('user_id', currentUserId);
-  if (state.events.length) await supabase.from('events').insert(state.events.map(eventToRow));
+  await supabaseClient.from('events').delete().eq('user_id', currentUserId);
+  if (state.events.length) await supabaseClient.from('events').insert(state.events.map(eventToRow));
 }
 
 /* ---------- VOICE NOTES ---------- */
@@ -748,13 +748,13 @@ function rowToNote(r){
     transcript:r.transcript||'', created:new Date(r.created_at).getTime() };
 }
 async function loadNotes(){
-  const { data, error } = await supabase.from('voice_notes').select('*').order('created_at');
+  const { data, error } = await supabaseClient.from('voice_notes').select('*').order('created_at');
   if (error){ console.error(error); return []; }
   return data.map(rowToNote);
 }
 async function saveNotes(){
-  await supabase.from('voice_notes').delete().eq('user_id', currentUserId);
-  if (state.notes.length) await supabase.from('voice_notes').insert(state.notes.map(noteToRow));
+  await supabaseClient.from('voice_notes').delete().eq('user_id', currentUserId);
+  if (state.notes.length) await supabaseClient.from('voice_notes').insert(state.notes.map(noteToRow));
 }
 
 /* ---------- EMAILS ---------- */
@@ -769,13 +769,13 @@ function rowToEmail(r){
     status:r.status, created:new Date(r.created_at).getTime() };
 }
 async function loadEmails(){
-  const { data, error } = await supabase.from('emails').select('*').order('created_at');
+  const { data, error } = await supabaseClient.from('emails').select('*').order('created_at');
   if (error){ console.error(error); return []; }
   return data.map(rowToEmail);
 }
 async function saveEmails(){
-  await supabase.from('emails').delete().eq('user_id', currentUserId);
-  if (state.emails.length) await supabase.from('emails').insert(state.emails.map(emailToRow));
+  await supabaseClient.from('emails').delete().eq('user_id', currentUserId);
+  if (state.emails.length) await supabaseClient.from('emails').insert(state.emails.map(emailToRow));
 }
 
 /* ---------- FOCUS BLOCKS ---------- */
@@ -789,13 +789,13 @@ function rowToBlock(r){
     focusMode:r.focus_mode, created:new Date(r.created_at).getTime() };
 }
 async function loadBlocks(){
-  const { data, error } = await supabase.from('focus_blocks').select('*').order('created_at');
+  const { data, error } = await supabaseClient.from('focus_blocks').select('*').order('created_at');
   if (error){ console.error(error); return []; }
   return data.map(rowToBlock);
 }
 async function saveBlocks(){
-  await supabase.from('focus_blocks').delete().eq('user_id', currentUserId);
-  if (state.blocks.length) await supabase.from('focus_blocks').insert(state.blocks.map(blockToRow));
+  await supabaseClient.from('focus_blocks').delete().eq('user_id', currentUserId);
+  if (state.blocks.length) await supabaseClient.from('focus_blocks').insert(state.blocks.map(blockToRow));
 }
 
 /* ---------- NOTIF LOG ---------- */
@@ -806,23 +806,23 @@ function rowToNotif(r){
   return { id:r.id, title:r.title, body:r.body||'', time:new Date(r.occurred_at).getTime() };
 }
 async function loadNotifLog(){
-  const { data, error } = await supabase.from('notif_log').select('*').order('occurred_at', { ascending:false }).limit(40);
+  const { data, error } = await supabaseClient.from('notif_log').select('*').order('occurred_at', { ascending:false }).limit(40);
   if (error){ console.error(error); return []; }
   return data.map(rowToNotif);
 }
 async function saveNotifLog(){
-  await supabase.from('notif_log').delete().eq('user_id', currentUserId);
-  if (state.notifLog.length) await supabase.from('notif_log').insert(state.notifLog.map(notifToRow));
+  await supabaseClient.from('notif_log').delete().eq('user_id', currentUserId);
+  if (state.notifLog.length) await supabaseClient.from('notif_log').insert(state.notifLog.map(notifToRow));
 }
 
 /* ---------- SETTINGS (single row per user) ---------- */
 async function loadSettings(){
-  const { data, error } = await supabase.from('settings').select('*').maybeSingle();
+  const { data, error } = await supabaseClient.from('settings').select('*').maybeSingle();
   if (error || !data) return { notifPermission:'default', defaultPriority:'medium', aiLanguage:'en-US' };
   return { notifPermission:data.notif_permission, defaultPriority:data.default_priority, aiLanguage:data.ai_language };
 }
 async function saveSettings(){
-  await supabase.from('settings').upsert({
+  await supabaseClient.from('settings').upsert({
     user_id:currentUserId,
     notif_permission:state.settings.notifPermission,
     default_priority:state.settings.defaultPriority,
@@ -1847,7 +1847,7 @@ async function sendToAI(userMsg){
   const messages=[{role:'user',content:`[CONTEXT]\n${context}\n\n[USER REQUEST]\n${userMsg}`}];
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    const resp=await fetch('/api/ai',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
